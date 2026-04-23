@@ -1,0 +1,239 @@
+---
+title: Deployment
+description: Run Quorum in production with Docker Compose, behind a reverse proxy, or as a single-host service.
+---
+
+This page covers running Quorum outside development. For first-time
+setup on your laptop, see [Quickstart](/docs/quickstart).
+
+## Docker Compose (recommended)
+
+The simplest production-like deployment uses the bundled
+`docker-compose.yml`. It builds two images — backend and frontend —
+and runs them as a pair.
+
+```bash
+git clone https://github.com/Talha-2/Quorum.git
+cd Quorum
+cp .env.example .env
+# Edit .env with your LLM provider credentials
+docker-compose up -d
+```
+
+Once the containers are healthy:
+
+- Frontend: `http://localhost:3000`
+- Backend: `http://localhost:8000`
+- Health check: `http://localhost:8000/health`
+
+To follow logs:
+
+```bash
+docker-compose logs -f backend frontend
+```
+
+To stop:
+
+```bash
+docker-compose down
+```
+
+To rebuild after a code change:
+
+```bash
+docker-compose up -d --build
+```
+
+### Environment file
+
+Your `.env` should contain at minimum:
+
+```env
+LLM_PROVIDER=google
+GOOGLE_API_KEY=AIza...
+GOOGLE_MODEL=gemini-1.5-flash
+```
+
+See [Configuration](/docs/configuration) for the full list of supported
+variables.
+
+### Persistence inside Docker
+
+Project state is persisted to a pickle file inside the backend
+container. To survive container restarts, mount a volume:
+
+```yaml
+services:
+  backend:
+    volumes:
+      - quorum-data:/app/data
+    environment:
+      QUORUM_PROJECT_STORE_PATH: /app/data/projects.pkl
+volumes:
+  quorum-data:
+```
+
+This is wired up in the bundled `docker-compose.yml` by default.
+
+## Behind a reverse proxy
+
+For production deployments where Quorum is fronted by Nginx, Caddy, or
+a cloud load balancer, you typically want the frontend on `/` and the
+backend on `/api`. Two things to configure:
+
+1. **Frontend**: set `NEXT_PUBLIC_API_BASE_URL` at build time so the
+   frontend knows where to find the API:
+
+   ```env
+   NEXT_PUBLIC_API_BASE_URL=https://quorum.example.com
+   ```
+
+2. **Reverse proxy**: route `/api/*` to the backend container.
+
+### Example: Nginx
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name quorum.example.com;
+
+    location /api/ {
+        proxy_pass http://backend:8000/api/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Generous timeout — graph extraction can take 30s
+        proxy_read_timeout 120s;
+    }
+
+    location /health {
+        proxy_pass http://backend:8000/health;
+    }
+
+    location / {
+        proxy_pass http://frontend:3000;
+        proxy_set_header Host $host;
+    }
+}
+```
+
+### Example: Caddy
+
+```caddyfile
+quorum.example.com {
+    handle /api/* {
+        reverse_proxy backend:8000
+    }
+    handle /health {
+        reverse_proxy backend:8000
+    }
+    handle {
+        reverse_proxy frontend:3000
+    }
+}
+```
+
+## Single-host production without Docker
+
+If you'd rather run Quorum directly on a server (e.g. with systemd):
+
+### Backend service
+
+```ini
+# /etc/systemd/system/quorum-backend.service
+[Unit]
+Description=Quorum backend
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quorum
+EnvironmentFile=/opt/quorum/.env
+ExecStart=/opt/quorum/.venv/bin/python -m uvicorn backend.main:app \
+  --host 0.0.0.0 --port 8000
+Restart=on-failure
+User=quorum
+
+[Install]
+WantedBy=multi-user.target
+```
+
+### Frontend service
+
+```ini
+# /etc/systemd/system/quorum-frontend.service
+[Unit]
+Description=Quorum frontend
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/quorum/frontend
+Environment=NODE_ENV=production
+EnvironmentFile=/opt/quorum/frontend/.env.local
+ExecStart=/usr/bin/node node_modules/next/dist/bin/next start -p 3000
+Restart=on-failure
+User=quorum
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Build the frontend once before enabling the service:
+
+```bash
+cd /opt/quorum/frontend
+npm ci
+npm run build
+```
+
+Then:
+
+```bash
+sudo systemctl enable --now quorum-backend quorum-frontend
+```
+
+## Monitoring
+
+Quorum exposes a single health endpoint:
+
+```bash
+curl http://localhost:8000/health
+```
+
+```json
+{
+  "status": "healthy",
+  "service": "Quorum",
+  "llm_provider_configured": "google",
+  "llm_provider_active": "google",
+  "llm_provider_ok": true,
+  "simulation_count": 12
+}
+```
+
+Hook this into whatever uptime monitor you use. The
+`llm_provider_ok` field is the most important signal — when it goes
+`false`, the configured LLM has failed and Quorum is silently using
+the local stub. Alert on this.
+
+## Security considerations
+
+- **CORS** is enabled for all origins by default — restrict it in
+  production by editing the `CORSMiddleware` configuration in
+  `backend/main.py`.
+- **No authentication** is built in. If you expose Quorum to the
+  internet, put it behind an auth proxy (Cloudflare Access, oauth2-proxy,
+  etc.).
+- **Pickle persistence** is safe because the backend only ever
+  loads files it wrote itself. If you manage `QUORUM_PROJECT_STORE_PATH`
+  carefully, this remains safe.
+- **Uploaded documents** are stored only as extracted text in the
+  project state — the original files are never written to disk.
+
+## See also
+
+- **[Configuration](/docs/configuration)** — env var reference
+- **[API reference](/docs/api-reference)** — endpoints and schemas
+- **[Troubleshooting](/docs/troubleshooting)** — diagnosing common
+  issues

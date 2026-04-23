@@ -1,0 +1,172 @@
+---
+title: Configuration
+description: Environment variables, LLM provider setup, persistence, and performance tuning for Quorum.
+---
+
+Quorum is configured entirely through environment variables. The backend
+reads them from a `.env.local` file at the repository root, falling back
+to system environment variables.
+
+## Required variables
+
+You need to set exactly one LLM provider. Quorum currently supports
+three.
+
+### Google Gemini (free tier available)
+
+```env
+LLM_PROVIDER=google
+GOOGLE_API_KEY=AIza...
+GOOGLE_MODEL=gemini-1.5-flash
+```
+
+Get a key at [aistudio.google.com](https://aistudio.google.com/apikey).
+The free tier gives you ~15 requests per minute on `gemini-1.5-flash`,
+which is plenty for development.
+
+**Recommended models:**
+
+- `gemini-1.5-flash` — fast, free, 15 RPM
+- `gemini-2.5-flash` — better quality but only 5 RPM on free tier
+
+### Anthropic Claude
+
+```env
+LLM_PROVIDER=claude
+ANTHROPIC_API_KEY=sk-ant-...
+CLAUDE_MODEL=claude-opus-4-6
+```
+
+Get a key at [console.anthropic.com](https://console.anthropic.com).
+Best output quality, paid only.
+
+### Azure AI Foundry
+
+For models hosted on Azure AI Foundry's Models-as-a-Service endpoints
+(Kimi K2.5, Llama, etc.):
+
+```env
+LLM_PROVIDER=azure
+AZURE_RESOURCE_NAME=your-resource-name
+AZURE_API_KEY=...
+AZURE_API_VERSION=2024-05-01-preview
+AZURE_CHAT_MODEL_KIMI_25=kimi-k2.5
+AZURE_EMBEDDING_DEPLOYMENT=text-embedding-3-large
+```
+
+The endpoint is constructed as
+`https://{AZURE_RESOURCE_NAME}.services.ai.azure.com/models`. The
+embedding deployment is reserved for future use.
+
+Quorum's Azure provider includes per-call rate limiting, automatic
+backoff on `429`/`503`/`529`, and a reasoning-token budget that
+inflates `max_tokens` so reasoning models like Kimi K2.5 leave room for
+actual response content.
+
+## Switching providers
+
+Change `LLM_PROVIDER` and restart the backend. The provider is read once
+at startup. To verify which provider is actually serving requests, hit:
+
+```bash
+curl http://localhost:8000/health
+```
+
+The response distinguishes between the **configured** provider and the
+**active** provider:
+
+```json
+{
+  "llm_provider_configured": "google",
+  "llm_provider_active": "google",
+  "llm_provider_ok": true
+}
+```
+
+If `llm_provider_active` is `local` while `configured` is something
+else, the configured provider failed to initialize and Quorum silently
+fell back to the local stub. Common causes:
+
+- The provider's Python package isn't installed
+  (`pip install google-generativeai` for Google,
+  `pip install anthropic` for Claude,
+  `pip install openai` for Azure)
+- The API key is missing or invalid
+- The model name is misspelled
+
+The startup log will print a warning when this happens — search for
+`LLM provider mismatch` in the uvicorn output.
+
+## Optional variables
+
+```env
+# Server
+DEBUG=true
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8000
+
+# Project persistence file (defaults to backend/.quorum_projects.pkl)
+QUORUM_PROJECT_STORE_PATH=/var/lib/quorum/projects.pkl
+```
+
+## Project persistence
+
+Projects are persisted to disk via Python pickle so they survive backend
+restarts. The default path is `backend/.quorum_projects.pkl`. Override
+with the `QUORUM_PROJECT_STORE_PATH` environment variable.
+
+The persistence layer handles schema mismatches gracefully — if you
+update a dataclass field and an old pickle file can't be loaded, it's
+renamed to `.pkl.broken` and the store starts fresh. No manual cleanup
+required.
+
+To wipe all projects manually:
+
+```bash
+rm backend/.quorum_projects.pkl
+```
+
+## Frontend variables
+
+The frontend reads exactly one variable from the build environment:
+
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+```
+
+Default if unset is `http://localhost:8000`. For a production deployment
+where the frontend and backend live on different hosts, set this in
+`frontend/.env.local`.
+
+## Performance tuning
+
+### LLM call concurrency
+
+Quorum's pipeline is sequential by stage but the agent activity config
+generation in Stage 04 batches 8 agents per LLM call to keep individual
+prompt sizes bounded. If you have a large agent pool (>30) you can
+increase the batch size by editing `AGENTS_PER_BATCH` in
+`backend/pipeline/simulation_config_generator.py`. Larger batches mean
+fewer LLM calls but bigger prompts and more risk of truncation.
+
+### Graph extraction token budget
+
+The graph builder retries with progressively larger token budgets
+(6000 → 9000 → 12000) when truncation is detected. If your reasoning
+model consistently truncates, edit the `budgets` list in
+`backend/pipeline/graph_builder.py` to start higher.
+
+### Project store size
+
+The pickle store grows monotonically — every project ever created stays
+in the store until you delete it. For a production deployment with
+many projects, you'll want to periodically prune old projects or
+migrate to a real database. The persistence layer is isolated to
+`backend/pipeline/router.py` so swapping it is straightforward.
+
+## See also
+
+- **[Quickstart](/docs/quickstart)** — first-time setup
+- **[Deployment](/docs/deployment)** — running with Docker Compose
+- **[Troubleshooting](/docs/troubleshooting)** — diagnosing common
+  configuration issues

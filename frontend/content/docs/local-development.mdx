@@ -1,0 +1,255 @@
+---
+title: Local development
+description: Set up Quorum from source as a contributor — backend, frontend, hot reload, type checks, and the contribution loop.
+---
+
+This page is for contributors. If you just want to **use** Quorum, see
+[Quickstart](/docs/quickstart) instead.
+
+## Prerequisites
+
+- **Python** 3.11 or 3.12 (3.13 also works)
+- **Node.js** 20+
+- **Git**
+- An LLM API key (Google Gemini free tier is enough for development)
+
+## Repository layout
+
+```
+Quorum/
+├── backend/                          Python FastAPI service
+│   ├── main.py                       App entry, CORS, route mounting
+│   ├── llm.py                        Provider abstraction layer
+│   ├── config.py                     Pydantic settings + env loading
+│   ├── pipeline/                     The seven-stage pipeline
+│   │   ├── models.py                 Dataclasses (Project, Ontology, etc.)
+│   │   ├── router.py                 FastAPI router with all endpoints
+│   │   ├── ontology_generator.py     Stage 01
+│   │   ├── graph_builder.py          Stage 02
+│   │   ├── env_setup.py              Stage 03
+│   │   ├── simulation_config_generator.py  Stage 04
+│   │   ├── simulation_runner.py      Stage 06
+│   │   ├── report_generator.py       Stage 07
+│   │   └── file_parser.py            PDF/MD/TXT extraction (Stage 0)
+│   └── requirements.txt
+├── frontend/                         Next.js 14 React app
+│   ├── app/                          Pages (landing, workspace, docs)
+│   ├── components/
+│   │   ├── workspace/                The main pipeline UI
+│   │   ├── pipeline/                 Stage cards + modals
+│   │   ├── graph/                    d3-force graph canvas
+│   │   ├── site/                     Header / footer / theme toggle
+│   │   └── debate/                   Debate transcript components
+│   ├── content/docs/                 MDX documentation source
+│   ├── lib/pipeline-api.ts           Typed REST client
+│   ├── types/pipeline.ts             TypeScript types matching Python dataclasses
+│   └── package.json
+├── .env.example                      Template for .env.local
+└── docker-compose.yml                Production-like local stack
+```
+
+## Backend setup
+
+```bash
+git clone https://github.com/Talha-2/Quorum.git
+cd Quorum/backend
+python -m venv .venv
+source .venv/bin/activate              # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+The Python dependencies include:
+
+- `fastapi` + `uvicorn` — web framework
+- `pydantic` + `pydantic-settings` — request validation + config
+- `python-multipart` — multipart form-data for the upload endpoint
+- `pypdf` — PDF text extraction
+- `openai` — used as the client SDK for Azure AI Foundry
+- `google-generativeai` — Gemini client
+- `anthropic` — Claude client
+
+## Frontend setup
+
+```bash
+cd ../frontend
+npm install
+```
+
+The frontend uses:
+
+- **Next.js 14** App Router
+- **React 18** + **TypeScript**
+- **Tailwind CSS** for styling
+- **framer-motion** for animations
+- **d3** (specifically `d3-force`, `d3-zoom`, `d3-drag`,
+  `d3-selection`) for the knowledge graph visualization
+- **fumadocs** for the documentation site
+- **lucide-react** for icons
+
+## Environment configuration
+
+Copy the example file:
+
+```bash
+cp .env.example .env.local
+```
+
+Then edit `.env.local` with your LLM provider credentials. The minimum
+viable config:
+
+```env
+LLM_PROVIDER=google
+GOOGLE_API_KEY=AIza...
+GOOGLE_MODEL=gemini-1.5-flash
+```
+
+See [Configuration](/docs/configuration) for all options.
+
+## Running with hot reload
+
+In one terminal — **from the repo root**, not from inside `backend/`:
+
+```bash
+python -m uvicorn backend.main:app --reload --port 8000
+```
+
+`--reload` watches every `.py` file under `backend/` and restarts the
+server on save. The startup log should look like:
+
+```
+INFO     LLM Provider: google
+INFO     Loaded N project(s) from D:\Quorum\backend\.quorum_projects.pkl
+INFO     Application startup complete.
+INFO     Uvicorn running on http://0.0.0.0:8000
+```
+
+In a second terminal:
+
+```bash
+cd frontend
+npm run dev
+```
+
+The frontend has Fast Refresh — most edits will hot-reload without
+losing state.
+
+## Verifying everything works
+
+```bash
+# Backend health
+curl http://localhost:8000/health
+
+# Should return:
+# { "status": "healthy", "service": "Quorum",
+#   "llm_provider_active": "google", "llm_provider_ok": true, ... }
+
+# Frontend
+open http://localhost:3000
+```
+
+If `llm_provider_ok` is `false`, the configured provider failed to
+initialize. See [Troubleshooting](/docs/troubleshooting).
+
+## Type-checking the frontend
+
+```bash
+cd frontend
+npx tsc --noEmit --skipLibCheck
+```
+
+Should exit cleanly with no output.
+
+## Building the frontend
+
+```bash
+cd frontend
+npm run build
+```
+
+The build produces a `.next/` directory with the production assets. To
+serve them:
+
+```bash
+npm run start
+```
+
+## Running tests
+
+The backend has a small smoke-test suite under `backend/tests/`:
+
+```bash
+cd backend
+python -m pytest
+```
+
+The frontend doesn't currently have a test suite — contributions
+welcome.
+
+## Adding a new pipeline stage
+
+If you want to add a new stage between two existing ones (say, between
+Stage 02 and Stage 03), the pattern is:
+
+1. **Add a new dataclass** to `backend/pipeline/models.py` representing
+   the stage's output. Add a corresponding field to the `Project`
+   dataclass.
+
+2. **Add a new state** to the `ProjectState` enum.
+
+3. **Build the service** as a new module in `backend/pipeline/` —
+   for example `my_new_stage.py`. It should be a single async function
+   that takes a `Project` and returns the new dataclass, with proper
+   try/except + `ContentFilterError` handling.
+
+4. **Add the endpoint** to `backend/pipeline/router.py`. Use
+   `_persist_and_serialize(project)` as the return value so the project
+   is saved to disk after each mutation.
+
+5. **Add the type** to `frontend/types/pipeline.ts` mirroring the Python
+   dataclass.
+
+6. **Add the API client method** to `frontend/lib/pipeline-api.ts`.
+
+7. **Build the stage card** as a new component in
+   `frontend/components/pipeline/`. Use the existing
+   `<StageCard>` component as the base.
+
+8. **Wire it into the workspace** in
+   `frontend/components/workspace/quorum-pipeline.tsx`.
+
+9. **Verify**: type-check + build the frontend, smoke-test the backend
+   imports, and run an end-to-end project through the workspace.
+
+## Adding a new LLM provider
+
+The provider abstraction lives in `backend/llm.py`. To add a new
+provider:
+
+1. Add a subclass of `LLMProvider` with a `name` attribute and an
+   `async generate(system, user_message, max_tokens)` method.
+2. Add a branch to `get_llm_provider()` for your new
+   `LLM_PROVIDER` value.
+3. Add the relevant fields to `backend/config.py`.
+
+The existing `GoogleGeminiProvider` and `AzureProvider` classes are
+good templates.
+
+## Code style
+
+- Python: PEP 8, type hints required on public functions, docstrings
+  on all exported classes and modules.
+- TypeScript: strict mode, no `any` unless unavoidable, function
+  components only.
+- React: client components only when needed (mark with `'use client'`).
+- Comments explain **why**, not what. The code should be self-evident
+  about *what* it does; comments are for non-obvious *why*.
+
+## Submitting a PR
+
+1. Fork the repo on GitHub
+2. Create a feature branch from `main`
+3. Make your changes with clear, atomic commits
+4. Verify type-check + build pass
+5. Open a PR against `main` with a description of the change
+
+Issues and PRs welcome.

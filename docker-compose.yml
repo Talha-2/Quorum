@@ -1,0 +1,85 @@
+# Quorum — local production-like stack
+#
+# Two services: a FastAPI backend and a Next.js frontend. No external
+# database — projects are persisted to a pickle file inside the backend
+# container, mounted on the `quorum-data` volume so they survive restarts.
+#
+# Configure your LLM provider in `.env` (see .env.example).
+
+services:
+  # ============================================
+  # Backend — FastAPI + the seven-stage pipeline
+  # ============================================
+  backend:
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
+    container_name: quorum-backend
+    restart: unless-stopped
+    environment:
+      # LLM provider — set LLM_PROVIDER to one of: google, claude, azure, local
+      LLM_PROVIDER: ${LLM_PROVIDER:-google}
+
+      # Google Gemini (free tier available)
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GOOGLE_MODEL: ${GOOGLE_MODEL:-gemini-1.5-flash}
+
+      # Anthropic Claude (paid)
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CLAUDE_MODEL: ${CLAUDE_MODEL:-claude-opus-4-6}
+
+      # Azure AI Foundry (Kimi K2.5 and other MaaS deployments)
+      AZURE_RESOURCE_NAME: ${AZURE_RESOURCE_NAME:-}
+      AZURE_API_KEY: ${AZURE_API_KEY:-}
+      AZURE_API_VERSION: ${AZURE_API_VERSION:-2024-05-01-preview}
+      AZURE_CHAT_MODEL_KIMI_25: ${AZURE_CHAT_MODEL_KIMI_25:-kimi-k2.5}
+
+      # Server
+      DEBUG: ${DEBUG:-false}
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8000
+
+      # Persistent project store inside the mounted volume
+      QUORUM_PROJECT_STORE_PATH: /app/data/projects.pkl
+    ports:
+      - "8000:8000"
+    volumes:
+      # Persist projects across container restarts
+      - quorum-data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 15s
+      retries: 3
+    networks:
+      - quorum
+
+  # ============================================
+  # Frontend — Next.js 14 + React + d3-force
+  # ============================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: quorum-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - quorum
+
+volumes:
+  quorum-data:
+    driver: local
+
+networks:
+  quorum:
+    name: quorum-network
+    driver: bridge

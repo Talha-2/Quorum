@@ -1,0 +1,137 @@
+---
+title: Quickstart
+description: Install Quorum and run your first multi-agent simulation in five minutes.
+---
+
+This guide gets you from zero to a finished simulation report in roughly five
+minutes. It assumes you have Python 3.11+, Node.js 20+, and an LLM API key
+(Google Gemini works free; Azure AI Foundry and Anthropic Claude work paid).
+
+## 1. Install
+
+```bash
+git clone https://github.com/Talha-2/Quorum.git
+cd Quorum
+```
+
+### Backend
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate           # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Frontend
+
+```bash
+cd ../frontend
+npm install
+```
+
+## 2. Configure your LLM provider
+
+Create a file called `.env.local` in the repo root with your provider
+credentials. The simplest option is the Google Gemini free tier:
+
+```env
+LLM_PROVIDER=google
+GOOGLE_API_KEY=AIza...
+GOOGLE_MODEL=gemini-1.5-flash
+```
+
+For Azure AI Foundry (Kimi K2.5 and other Models-as-a-Service deployments):
+
+```env
+LLM_PROVIDER=azure
+AZURE_RESOURCE_NAME=your-resource-name
+AZURE_API_KEY=...
+AZURE_API_VERSION=2024-05-01-preview
+AZURE_CHAT_MODEL_KIMI_25=kimi-k2.5
+```
+
+For Anthropic Claude:
+
+```env
+LLM_PROVIDER=claude
+ANTHROPIC_API_KEY=sk-ant-...
+CLAUDE_MODEL=claude-opus-4-6
+```
+
+See [Configuration](/docs/configuration) for the full list of supported
+providers and tunables.
+
+## 3. Start the services
+
+In one terminal, run the backend from the **repository root** (not from
+inside `backend/`):
+
+```bash
+python -m uvicorn backend.main:app --reload --port 8000
+```
+
+You should see:
+
+```
+INFO     LLM Provider: google
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000
+```
+
+In a second terminal, run the frontend:
+
+```bash
+cd frontend
+npm run dev
+```
+
+The workspace will be available at `http://localhost:3000`.
+
+## 4. Run your first simulation
+
+1. Open `http://localhost:3000/workspace`.
+2. Optionally drag a PDF, Markdown, or text file onto the **Reality seeds**
+   drop zone. Quorum will extract its content and use it as context for the
+   ontology.
+3. Enter a brief — for example:
+   *"Should we replace our PostgreSQL cluster with Aurora before the Q3 launch?"*
+4. Click **Generate ontology + graph**.
+
+The pipeline will:
+
+- Create an entity + edge type schema specific to your brief
+- Extract every concrete entity from the brief and any uploaded documents
+- Render the result as a force-directed knowledge graph
+
+Then, in order, click each subsequent stage button:
+
+- **Stage 03 — Generate agent personas** instantiates one AI agent per
+  speaker-capable entity in the graph
+- **Stage 04 — Generate simulation config** designs the per-agent activity
+  profile, narrative direction, and platform recommendation algorithms
+- **Stage 06 — Start simulation** runs the round-by-round debate
+- **Stage 07 — Generate report** plans an outline and writes a
+  multi-section markdown report
+
+You can drag nodes on the graph, click any agent to see its full profile,
+and download the final report as a Markdown file.
+
+## 5. What just happened
+
+You ran the seven-stage Quorum pipeline end-to-end. To understand what each
+stage did, read [Concepts](/docs/concepts) and the
+[Pipeline stages](/docs/pipeline-stages) reference. To call the same
+pipeline programmatically without the web UI, see the
+[API reference](/docs/api-reference).
+
+## Common first-run issues
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| `service: "Quorum"` but agents return generic stub text | LLM provider misconfigured — fell back to local stub | Check `/health` for `llm_provider_active`. Install the provider package and verify API key |
+| `429 Quota exceeded` on first call | Free-tier LLM rate limit hit | Wait or switch to a different provider |
+| `400 content_filter` on a topic | Provider's safety filter rejected the prompt | Try rephrasing the brief; affected agents skip their turn cleanly |
+| `404 Not Found` on `/report/generate` after restart | Project was created in a previous backend lifetime | Click **New project** to start fresh — projects now persist via a pickle store, so this only affects pre-persistence projects |
+
+For more, see [Troubleshooting](/docs/troubleshooting).

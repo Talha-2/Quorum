@@ -1,0 +1,242 @@
+---
+title: Troubleshooting
+description: Diagnose and fix the most common Quorum errors — LLM provider mismatches, content filters, rate limits, content extraction failures, and pipeline stage errors.
+---
+
+This page collects the issues users hit most often, what causes them,
+and how to fix them. If your problem isn't here, check the
+[GitHub issues](https://github.com/Talha-2/Quorum/issues) or open a
+new one.
+
+## Provider issues
+
+### Agents return canned-sounding stub text
+
+**Symptom:** every agent says something like *"As an agent, I
+acknowledge: …"* and the responses are obviously templated.
+
+**Cause:** the configured LLM provider failed to initialize and
+Quorum silently fell back to the local deterministic stub.
+
+**Diagnosis:**
+
+```bash
+curl http://localhost:8000/health
+```
+
+If `llm_provider_active` is `local` while `llm_provider_configured` is
+something else, you have a fallback. The startup log will also have a
+`LLM provider mismatch` warning explaining why.
+
+**Common fixes:**
+
+- The provider's Python package isn't installed:
+  - Google: `pip install google-generativeai`
+  - Claude: `pip install anthropic`
+  - Azure: `pip install openai`
+- The API key is missing, expired, or wrong
+- The model name is misspelled in `.env.local`
+
+After fixing, restart the backend so the provider is re-initialized.
+
+### Rate limit errors (`429`)
+
+**Symptom:** stages fail with messages like
+`429 Quota exceeded for metric: generate_content_free_tier_requests`.
+
+**Cause:** the provider's per-minute or per-day rate limit was hit.
+
+**Fixes by provider:**
+
+- **Google Gemini**: free tier is 15 RPM on `gemini-1.5-flash` and 5 RPM
+  on `gemini-2.5-flash`. Switch to the faster-tier model or wait.
+- **Azure**: shared deployments often have an 8-concurrent-user cap.
+  Quorum's Azure provider includes automatic backoff and retry, so
+  this usually self-recovers within a few seconds.
+- **Claude**: respect the per-tier limits documented in the Anthropic
+  console.
+
+### Content filter blocks (`400 content_filter`)
+
+**Symptom:** simulation runs but several agents are missing from the
+transcript. The system dashboard shows
+`{Agent} skipped (content filter blocked the prompt)`.
+
+**Cause:** the LLM provider's safety filter rejected one or more
+agent turn prompts. This happens most often on Azure when an entity
+name carries political or violent connotations (`Nazism`, `Atomic
+Bombing of X`, etc.) — the filter correctly refuses to roleplay those.
+
+**Fix:** Quorum's `env_setup` already filters out events, ideologies,
+and abstract concepts before they become agents (only people,
+organizations, and groups with a "speaker" head noun are kept). If
+content filters are still blocking turns, the offending agents are
+genuine entities the LLM is unwilling to roleplay. Either:
+
+- Rephrase the brief to be more explicitly academic ("analyze the
+  rhetorical strategies of …" rather than "argue as …")
+- Filter the offending entities out of the graph manually before
+  running env setup
+- Switch to a less aggressively filtered provider
+
+The simulation continues without the blocked turns — it never
+breaks the run.
+
+## Pipeline stage errors
+
+### Stage 02 graph build returns `500`
+
+**Symptom:** ontology generation succeeded but graph build fails with
+`Could not parse graph JSON. Raw start: { "nodes": [...`.
+
+**Cause:** the LLM truncated its response mid-JSON because it ran out
+of token budget on chain-of-thought reasoning.
+
+**What Quorum does automatically:** the graph builder retries with
+progressively larger budgets (6000 → 9000 → 12000) and uses a
+best-effort JSON repair that recovers as many entities as possible
+from truncated output. If you still hit this:
+
+- Edit `backend/pipeline/graph_builder.py` and bump the starting budget
+  in the `budgets` list
+- Switch to a provider/model with more output token headroom
+- Simplify the brief to reduce the number of entities the LLM tries
+  to extract
+
+### Stage 03 generates 0 agents
+
+**Symptom:** env setup succeeds but the agent count is 0.
+
+**Cause:** every entity in the graph was rejected by the speaker
+filter. This happens when your ontology generated only abstract
+types (events, evidence, claims, etc.) with no people or
+organizations.
+
+**Fix:** the speaker filter has a defensive fallback that uses the
+LLM's `is_individual` flag, then any node at all, before giving up.
+If you're still getting 0 agents, your graph genuinely has no
+speaker-capable entities. Edit your brief to mention people or
+institutions explicitly.
+
+### Stage 04 reports take a long time
+
+**Symptom:** simulation/prepare takes 30+ seconds.
+
+**Cause:** Stage 04 makes 4 sequential LLM calls plus N batches for
+agent activity configs (8 agents per batch). For 16 agents that's
+1 (time) + 1 (event) + 2 (activity) + 0 (platform, no LLM) = 4 calls.
+Most LLM providers take 5-10 seconds per call, so 30 seconds total
+is normal.
+
+**Fix:** if it's blocking your dev loop, reduce the agent count
+upstream by simplifying the brief. Stage 04 cost scales linearly with
+the number of agents.
+
+### Stage 06 simulation has fewer messages than expected
+
+**Symptom:** you asked for 3 rounds × 4 agents = 12 messages but only
+got 8.
+
+**Cause:** some agents had their turns blocked by content filters or
+LLM errors. Both are caught and logged but don't break the run.
+
+**Diagnosis:** check the system dashboard at the bottom of the
+workspace. Every skipped turn produces a warning event with the
+agent name and reason.
+
+### Stage 07 report generation fails on a section
+
+**Symptom:** the report renders with a section body that says
+`(Section failed: ...)` or `(Section blocked by content filter)`.
+
+**Cause:** one section's LLM call failed but the others succeeded.
+Quorum's report generator never aborts the whole report — it inserts
+an error placeholder and continues with the remaining sections.
+
+**Fix:** click **Generate report** again. The retry usually
+succeeds. If a specific section keeps failing, it may be hitting a
+content filter on a politically sensitive topic — the workaround is
+the same as for Stage 06 content filter blocks above.
+
+## Persistence issues
+
+### `404 Not Found` after backend restart
+
+**Symptom:** you click a stage button on an existing project after
+restarting the backend and get a 404.
+
+**Cause:** the project was created **before** Quorum's persistence
+layer existed (or before you upgraded to the persistent build). The
+in-memory store from the previous backend lifetime is gone and there's
+no on-disk record to restore.
+
+**Fix:** click **New project** in the workspace header to start fresh.
+From now on every project will persist via
+`backend/.quorum_projects.pkl`. You'll see the load on backend
+startup:
+
+```
+INFO     pipeline.router    Loaded N project(s) from .quorum_projects.pkl
+```
+
+### Pickle file corrupted after a model update
+
+**Symptom:** the backend startup log shows
+`Failed to load project store ... Starting with empty store.`
+
+**Cause:** you updated a dataclass schema and the old pickle file no
+longer matches. Quorum handles this automatically — it renames the
+broken file to `.pkl.broken` and starts with an empty store.
+
+**Fix:** none required. Your old projects are gone but the file
+rename means no manual cleanup is needed. If you need them back,
+roll back to the previous code version, restart, then upgrade
+again — but in practice schema changes are rare and not worth
+preserving across.
+
+## Frontend issues
+
+### Workspace stuck on "compiling"
+
+**Symptom:** the dev server log shows `Compiled in Xms` over and over
+but the page never updates.
+
+**Cause:** Next.js Fast Refresh got confused by a runtime error
+during a previous reload.
+
+**Fix:** stop the dev server (Ctrl+C), delete the `.next` directory,
+and restart:
+
+```bash
+cd frontend
+rm -rf .next
+npm run dev
+```
+
+### Agent detail modal shows `(no persona available)`
+
+**Symptom:** clicking an agent opens the modal but the persona body
+is empty.
+
+**Cause:** the agent's `persona` field is empty — usually because the
+persona generation LLM call failed and the fallback profile was used.
+
+**Fix:** check the system dashboard for warnings during env setup.
+If the LLM was rate-limited or content-filtered, you can re-run the
+env setup stage from the API:
+
+```bash
+curl -X POST http://localhost:8000/api/projects/proj_X/env/setup
+```
+
+This regenerates all agent personas with a fresh LLM call.
+
+## Still stuck?
+
+- Check the [GitHub issues](https://github.com/Talha-2/Quorum/issues)
+- Read the [Concepts](/docs/concepts) page for the architectural
+  overview
+- Read the [Pipeline stages](/docs/pipeline-stages) reference for
+  what each stage does internally
+- Open an issue with the contents of `/health`, the failing endpoint
+  call, and any relevant log lines

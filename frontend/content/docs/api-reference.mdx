@@ -1,0 +1,335 @@
+---
+title: API reference
+description: Every REST endpoint exposed by the Quorum backend, with request and response shapes and example calls.
+---
+
+The Quorum backend is a FastAPI service. By default it listens on
+`http://localhost:8000`. All endpoints accept and return JSON unless
+otherwise noted (the upload endpoint is multipart). CORS is enabled
+for any origin in development.
+
+## Health
+
+### `GET /health`
+
+Sanity check. Returns the configured LLM provider, the **active** LLM
+provider, an `llm_provider_ok` flag (false when the configured provider
+fell back to the local stub), and the number of live projects.
+
+```json
+{
+  "status": "healthy",
+  "service": "Quorum",
+  "llm_provider_configured": "google",
+  "llm_provider_active": "google",
+  "llm_provider_ok": true,
+  "llm_provider": "google",
+  "simulation_count": 3
+}
+```
+
+If `llm_provider_active` is `local` while `llm_provider_configured` is
+something else, the configured provider failed to initialize and Quorum
+silently fell back to the local stub. See [Troubleshooting](/docs/troubleshooting)
+for diagnosis.
+
+## Projects
+
+### `POST /api/projects`
+
+Create a new project.
+
+**Request body:**
+
+```json
+{
+  "title": "Optional human-readable title",
+  "brief": "Should we ship the new payments API in Q2?",
+  "constraints": "Compliance review must complete first\nBudget is fixed",
+  "signals": "Customer demand is rising"
+}
+```
+
+Only `brief` is required. If `title` is omitted it defaults to the first
+60 characters of the brief.
+
+**Response:** the full serialized `Project` object (see schema below).
+
+### `GET /api/projects/{project_id}`
+
+Fetch the full state of a project. Read-only — no side effects.
+
+**Response:** the same shape as `POST /api/projects`.
+
+## Stage 0 — Document upload
+
+### `POST /api/projects/{project_id}/upload`
+
+Upload a reality-seed document. **Multipart form-data**.
+
+**Request:**
+
+```bash
+curl -X POST http://localhost:8000/api/projects/proj_X/upload \
+  -F "file=@architecture-review.pdf"
+```
+
+Supported types: `.pdf`, `.md`, `.markdown`, `.txt`. Max 8 MB per file.
+The extracted text is stored on the project as `uploaded_documents` and
+fed into the ontology generator + graph builder as context.
+
+**Response:** the updated `Project`. The serialized `uploaded_documents`
+field contains only `{filename, char_count}` per file — never the full
+extracted text.
+
+**Errors:**
+
+- `400` — unsupported file type, file too large, or no extractable text
+- `404` — project not found
+- `500` — parser failed (PDF damaged, encoding undetectable, etc.)
+
+## Stage 01 — Ontology
+
+### `POST /api/projects/{project_id}/graph/ontology/generate`
+
+Generate the entity + edge type schema for this project. Uses the brief
+and any uploaded documents as context.
+
+**Request body:** none (empty `{}`).
+
+**Response:** the updated `Project`. The `ontology` field is now
+populated with `{entity_types: [...10], edge_types: [...6-10]}`.
+
+**Errors:**
+
+- `400` — already past this stage (rare)
+- `500` — LLM call failed or returned an empty ontology
+
+## Stage 02 — Knowledge graph
+
+### `POST /api/projects/{project_id}/graph/build`
+
+Extract entities and relations from the brief and uploaded documents,
+validated against the ontology.
+
+**Request body:** none.
+
+**Response:** the updated `Project`. The `graph` field is populated with
+`{nodes: [...], edges: [...]}` and `graph_stats` shows
+`{entity_nodes, relation_edges, schema_types}`.
+
+**Errors:**
+
+- `400` — ontology not generated yet
+- `500` — LLM call failed even after the truncation-recovery retry loop
+
+## Stage 03 — Environment setup
+
+### `POST /api/projects/{project_id}/env/setup`
+
+Generate one agent persona per speaker-capable entity in the graph.
+
+**Request body:** none.
+
+**Response:** the updated `Project`. The `agents` field is now populated
+with the full agent profiles.
+
+**Errors:**
+
+- `400` — graph not built yet
+- `500` — agent generation failed
+
+## Stage 04 — Generate config
+
+### `POST /api/projects/{project_id}/simulation/prepare`
+
+Generate the full simulation parameters: time config, per-agent activity
+configs, event config (narrative + hot topics + initial posts), and
+platform recommendation algorithm configs. This is the four-step LLM
+sub-pipeline described in [Pipeline stages](/docs/pipeline-stages).
+
+**Request body:** none.
+
+**Response:** the updated `Project` with `simulation_parameters`
+populated.
+
+**Errors:**
+
+- `400` — agents not generated yet
+
+## Stage 06 — Run simulation
+
+### `POST /api/projects/{project_id}/simulation/start`
+
+Run the round-by-round debate.
+
+**Request body:**
+
+```json
+{
+  "rounds": 3,
+  "agents_per_round": 4
+}
+```
+
+Both fields are optional. Defaults: `rounds=3`, `agents_per_round=4`.
+
+**Response:** the updated `Project`. `debate_messages` and `consensus`
+are populated.
+
+**Errors:**
+
+- `400` — agents not generated yet
+
+## Stage 07 — Generate report
+
+### `POST /api/projects/{project_id}/report/generate`
+
+Generate a multi-section markdown prediction report from the simulation
+results.
+
+**Request body:** none.
+
+**Response:** the updated `Project` with `report` populated:
+
+```json
+{
+  "report": {
+    "title": "Post-simulation findings: payments API Q2 launch",
+    "summary": "The swarm converged on a phased rollout with QA gates...",
+    "sections": [
+      {
+        "title": "What the agents agreed on",
+        "content": "Full markdown body with > blockquotes..."
+      }
+    ],
+    "markdown": "# Full rendered report\n\n## Section 1\n\n...",
+    "generated_at": "2026-04-10T11:25:50"
+  }
+}
+```
+
+**Errors:**
+
+- `400` — simulation has not run yet (no debate messages)
+
+## Stage 08 — Deep interaction
+
+### `POST /api/projects/{project_id}/agents/{agent_id}/chat`
+
+Chat with a specific agent in the post-simulation state.
+
+**Request body:**
+
+```json
+{
+  "message": "What did you mean by 'binding constraint' in round 2?"
+}
+```
+
+**Response:**
+
+```json
+{
+  "agent_id": "agent_X",
+  "agent_name": "Risk Radar",
+  "user_message": "What did you mean by 'binding constraint' in round 2?",
+  "reply": "I was referring to the compliance review timeline..."
+}
+```
+
+The agent's system prompt includes its full persona, the debate
+transcript summary, and the consensus, so its responses reflect both
+its in-character voice and its memory of the simulation.
+
+**Errors:**
+
+- `404` — project or agent not found
+- `500` — agent chat failed (LLM error or content filter)
+
+## Project schema
+
+The serialized `Project` returned by every endpoint:
+
+```typescript
+interface Project {
+  id: string                       // proj_<12 hex>
+  title: string
+  brief: string
+  constraints: string
+  signals: string
+  state: ProjectState              // see enum below
+  created_at: string               // ISO 8601
+  updated_at: string
+
+  // Stage outputs (populated as the pipeline progresses)
+  ontology: Ontology | null
+  graph_stats: GraphStats | null
+  graph?: { nodes: GraphNode[], edges: GraphEdge[] }
+  agent_count: number
+  agents?: AgentProfile[]
+  uploaded_documents?: { filename: string, char_count: number }[]
+  simulation_parameters?: SimulationParameters
+  debate_messages?: DebateMessage[]
+  consensus?: Consensus
+  report?: Report
+
+  // Last 30 events for the system dashboard
+  events: PipelineEvent[]
+}
+
+type ProjectState =
+  | "created"
+  | "ontology_generated"
+  | "graph_building"
+  | "graph_completed"
+  | "env_ready"
+  | "config_ready"
+  | "simulating"
+  | "sim_completed"
+  | "report_ready"
+  | "failed"
+```
+
+For the full schemas of `Ontology`, `AgentProfile`,
+`SimulationParameters`, etc., see the source models in
+`backend/pipeline/models.py` or the corresponding TypeScript types in
+`frontend/types/pipeline.ts`.
+
+## Curl: end-to-end example
+
+```bash
+# 1. Create project
+curl -X POST http://localhost:8000/api/projects \
+  -H "Content-Type: application/json" \
+  -d '{
+    "brief": "Should we adopt Kubernetes for our 3-service backend?",
+    "constraints": "Team has zero K8s experience\nMust ship in 6 weeks"
+  }'
+# → { "id": "proj_abc123", ... }
+
+# 2. Optional: upload supporting docs
+curl -X POST http://localhost:8000/api/projects/proj_abc123/upload \
+  -F "file=@architecture.pdf"
+
+# 3. Generate ontology + graph
+curl -X POST http://localhost:8000/api/projects/proj_abc123/graph/ontology/generate
+curl -X POST http://localhost:8000/api/projects/proj_abc123/graph/build
+
+# 4. Spawn agents + simulation config
+curl -X POST http://localhost:8000/api/projects/proj_abc123/env/setup
+curl -X POST http://localhost:8000/api/projects/proj_abc123/simulation/prepare
+
+# 5. Run the debate
+curl -X POST http://localhost:8000/api/projects/proj_abc123/simulation/start \
+  -H "Content-Type: application/json" \
+  -d '{ "rounds": 3, "agents_per_round": 4 }'
+
+# 6. Generate the report
+curl -X POST http://localhost:8000/api/projects/proj_abc123/report/generate
+
+# 7. Chat with a specific agent post-simulation
+curl -X POST http://localhost:8000/api/projects/proj_abc123/agents/agent_X/chat \
+  -H "Content-Type: application/json" \
+  -d '{ "message": "What is the biggest risk you see?" }'
+```

@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.pytest_cache/
+*.egg-info/
+
+# Cursor / Claude — local permissions (machine-specific paths)
+.claude/settings.local.json
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Node
+node_modules/
+.next/
+frontend/.source/
+out/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+postgres_data/
+
+# Quorum project state — local pickle store, never commit
+backend/.quorum_projects.pkl
+backend/.quorum_projects.pkl.broken
+backend/.quorum_projects.pkl.tmp
+backend/data/
+
+# Reference clones (development only)
+mirofish_ref/
+mirofish-demo/
+
+# Frontend build output
+frontend/.next/
+frontend/.turbo/
+frontend/node_modules/
+
+# tsconfig build cache
+tsconfig.tsbuildinfo
+**/tsconfig.tsbuildinfo
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

@@ -1,0 +1,15 @@
+{
+  "title": "Quorum",
+  "pages": [
+    "index",
+    "quickstart",
+    "concepts",
+    "pipeline-stages",
+    "workspace-guide",
+    "api-reference",
+    "configuration",
+    "deployment",
+    "troubleshooting",
+    "local-development"
+  ]
+}

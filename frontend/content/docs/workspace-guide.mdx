@@ -1,0 +1,209 @@
+---
+title: Workspace guide
+description: A walkthrough of the Quorum web workspace — projects, the seven-stage pipeline, the live graph, the agent gallery, and the deep interaction chat panel.
+---
+
+The Quorum workspace lives at [`/workspace`](/workspace). It's a single-page
+React app with three top-level views (Workbench, Graph, Agents) and a system
+dashboard pinned to the bottom. This guide walks through one full simulation
+end to end.
+
+## 1. Open the workspace
+
+Navigate to `http://localhost:3000/workspace`. On first visit you'll see the
+**Spin up a swarm** form. The form is the only thing on screen until you
+launch your first project.
+
+The header has three view tabs:
+
+- **Workbench** — the seven stage cards laid out vertically with the live
+  graph on the left
+- **Graph** — full-screen knowledge graph with search, type filters, and a
+  node detail sidebar
+- **Agents** — gallery of all generated agents with stance filters
+
+You can switch views at any time once a project is initialised.
+
+## 2. Create a project
+
+The form has four fields:
+
+- **Brief** (required) — the question you want the swarm to debate. Be
+  specific. The agents will reference your exact wording back to you.
+- **Constraints** (optional) — hard limits the swarm should respect.
+  One per line.
+- **Reality seeds** (optional) — drag PDF, Markdown, or text files onto the
+  drop zone. Up to 5 files, 8 MB each. The text is extracted and used as
+  context for the ontology and graph.
+
+**Good briefs:**
+
+- *"Should we ship the new payments API in Q2 if security review slips by 2 weeks?"*
+- *"Is it worth replacing our internal PostgreSQL cluster with a managed Aurora deployment?"*
+- *"We have $400k and 3 engineers. Should we build the AI feature or hire a senior PM?"*
+
+**Vague briefs to avoid:**
+
+- "AI strategy"
+- "Should we do it"
+
+Click **Generate ontology + graph** to create the project and start the
+pipeline. The form collapses and the workbench layout appears.
+
+## 3. Watch stages 01 and 02 complete
+
+The ontology and graph build automatically once the project is created.
+You'll see two stage cards on the right populate in sequence:
+
+- **Stage 01 — Ontology Generation** shows the generated entity type chips
+  (10 types) and relation type chips (6-10 types)
+- **Stage 02 — GraphRAG Build** shows the entity node count, relation edge
+  count, and schema type count
+
+Meanwhile, the graph panel on the left animates the new nodes in. You can
+drag any node to rearrange, scroll to zoom, and click any node to see its
+detail in the right sidebar.
+
+**Toggle edge labels** with the eye icon at the top-right of the graph
+panel — useful when you want to see the relationship types but cluttery
+on dense graphs.
+
+## 4. Generate agent personas (Stage 03)
+
+Click **Generate agent personas** in the Stage 03 card. Quorum spawns one
+agent per speaker-capable entity in the graph (events, ideologies, and
+abstract concepts are filtered out).
+
+Each agent appears as a chip in the Stage 03 card showing the name,
+`@username`, and role. Click any chip to open the **Agent Detail Modal**,
+which shows the full persona:
+
+- Header: avatar (stable color hash), display name, username, role tag,
+  stance pill
+- 4-cell apparent demographics: age, gender, country, MBTI
+- Bio (200 chars)
+- Related topics as colored pills
+- Detailed persona quad: Background / Behavior Profile / Unique Memory /
+  Social Network — parsed from the long persona text
+- Personality bars: optimism, risk tolerance, caution
+- Footer: "Chat with this agent" button (becomes active after Stage 06)
+
+You can also open the Agent Detail Modal by clicking any agent node on
+the graph.
+
+## 5. Generate simulation config (Stage 04)
+
+Click **Generate simulation config** in the Stage 04 card. Quorum runs four
+sequential LLM calls to produce the full simulation parameters:
+
+- **Time config** — 4 stat boxes (Duration, Round duration, Total rounds,
+  Active per hour) plus the four hour-multiplier rows (Peak, Work,
+  Morning, Off-peak)
+- **Recommendation algorithm config** — 2 columns showing the Feed and
+  Community platform configs (recency, popularity, relevance, viral
+  threshold, echo chamber strength)
+- **Agent config grid** — collapsible per-agent activity profiles. Each
+  panel shows the entity type tag, stance pill, 24-cell active hours
+  bar, posts/hr, comments/hr, response delay, activity level bar,
+  sentiment bias, and influence weight
+- **LLM config reasoning** — the concatenated reasoning text from each
+  LLM step
+
+Stage 05 (**Initial Activation Orchestration**) auto-fills from the same
+backend call. It shows:
+
+- Narrative direction in a brand-tinted card
+- Hot topics as `#hashtag` pills
+- Initial activation sequence as a list of starter posts, each attributed
+  to the assigned agent
+
+## 6. Start the simulation (Stage 06)
+
+Click **Start simulation** in the Stage 06 card. The round-by-round debate
+runs in the background. As messages stream in, you'll see them appear in
+the transcript section of the Stage 06 card.
+
+Each message shows:
+
+- Agent name + role
+- Round number
+- Stance (`support` / `oppose` / `neutral`)
+- The full message body
+
+After all rounds complete, a **Consensus** block appears below the
+transcript with:
+
+- The agreed position
+- Agreement rate
+- Confidence level
+- Number of dissenting agents
+
+If any agent's turn is blocked by a content filter, you'll see a warning
+in the system dashboard at the bottom of the screen — that agent skips its
+turn cleanly and the simulation continues.
+
+## 7. Generate the report (Stage 07)
+
+Click **Generate report** in the Stage 07 card. The pipeline runs:
+
+- **Step 1**: a planner LLM call designs the report outline (2-5 sections)
+- **Step 2**: one LLM call per section writes the section body using the
+  debate transcript and agent profiles as evidence
+
+When generation completes, the report appears inline:
+
+- **Header card** with the report title and summary
+- **Section list** — each section is collapsible. Click to expand and read
+  the markdown body (with `>` blockquotes for direct agent quotes)
+- **Expand all** toggle to open every section at once
+- **Download .md** button to save the full report as a Markdown file
+
+## 8. Deep interaction (Stage 08)
+
+After Stage 06 completes you can chat with any individual agent in the
+post-simulation state. To open the chat panel:
+
+- Click the **Chat with this agent** button in any Agent Detail Modal
+- Click an agent node on the graph (the chat panel opens automatically)
+
+The chat panel slides in from the right and has its own message thread.
+Each agent responds in character, drawing on its full persona, the
+debate transcript, and the consensus.
+
+## 9. The system dashboard
+
+The black strip at the bottom of the workspace is the live event log. It
+streams every status change from the project's `events` array. Color
+coding:
+
+- Gray — info messages
+- Green — success messages
+- Yellow — warnings (typically content filter blocks)
+- Red — errors
+
+The dashboard auto-scrolls to the latest event and shows the project ID
+in the top-right.
+
+## 10. Resetting and starting over
+
+Click **New project** in the header to clear the current project and
+return to the form. The project itself is preserved on disk (in
+`backend/.quorum_projects.pkl`) so it survives backend restarts — you
+can fetch it later by ID via `GET /api/projects/{id}`.
+
+## Tips
+
+- **Keep briefs specific.** "Should we A or B because of C, given D?"
+  produces better debates than "What about A?"
+- **Upload supporting docs.** Even a one-page PDF shifts the agent panel
+  toward something more grounded. The more concrete your seeds, the more
+  concrete the entities Quorum extracts.
+- **Trust the dissents.** A 100% agreement rate often means the brief was
+  too one-sided. A 70-85% rate with thoughtful dissents is usually more
+  useful.
+- **Use 3 rounds for most decisions.** More rounds rarely help — the
+  swarm converges fast. Bump to 5 only when you suspect the question has
+  hidden second-order effects.
+- **Watch the system dashboard.** Errors that don't break the run still
+  log there, and they often explain why a particular agent didn't speak
+  or why a stage took longer than expected.

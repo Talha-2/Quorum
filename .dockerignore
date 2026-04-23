@@ -1,0 +1,49 @@
+# Don't ship anything that doesn't need to be in a container.
+
+# Frontend artifacts (handled by their own build context)
+frontend/node_modules
+frontend/.next
+frontend/out
+frontend/.turbo
+
+# Python artifacts
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/.pytest_cache
+**/.venv
+**/venv
+**/.tox
+**/.mypy_cache
+
+# Project state — should never be in the image, only mounted as a volume
+backend/.quorum_projects.pkl
+backend/.quorum_projects.pkl.broken
+backend/.quorum_projects.pkl.tmp
+backend/data/
+
+# IDE / editor
+.vscode
+.idea
+.DS_Store
+*.swp
+
+# Git
+.git
+.gitignore
+.github
+
+# Documentation source (built into the frontend, doesn't need to be in backend image)
+docs/
+
+# Local env files
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Reference clones (used during development only)
+mirofish_ref/

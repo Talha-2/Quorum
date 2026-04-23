@@ -1,0 +1,76 @@
+---
+title: Introduction
+description: Quorum is a self-hosted multi-agent reasoning platform. Upload a document, design a topic-specific ontology, instantiate one AI agent per real-world entity, run a structured debate, and generate a prediction report.
+---
+
+Quorum is a self-hosted multi-agent reasoning platform.
+
+You give it a brief — a strategic decision, a research question, a policy
+draft — and an optional set of source documents. Quorum then runs a
+seven-stage pipeline that designs a topic-specific knowledge graph,
+instantiates one AI agent per real-world entity in that graph, runs them
+through a structured debate, and writes you a prediction report.
+
+The whole stack runs locally with the LLM provider of your choice (Google
+Gemini, Anthropic Claude, or Azure AI Foundry). There is no managed service
+and no hosted dependency you need to sign up for.
+
+## Why Quorum exists
+
+Most LLM tools collapse multi-stakeholder reasoning into a single voice
+optimising for a single answer. Real decisions need **structured
+disagreement**: a risk officer thinks differently from an opportunity scout;
+a constitutional historian sees what a startup founder misses. Quorum makes
+that disagreement explicit, tracks it across rounds, and surfaces both the
+consensus and the dissents in the final report.
+
+The same pipeline works across domains without templates or rewrites:
+
+- Product strategy and roadmap decisions
+- Engineering architecture trade-offs
+- Hiring and team-structure questions
+- Policy impact analysis
+- Research thesis stress-testing
+- Market entry and investment decisions
+
+You do not pick a domain. You describe the question, and the pipeline adapts.
+
+## How it differs from a single LLM
+
+A single LLM playing several "personas" tends to converge on its own bias —
+every persona ends up sounding similar because they all share the same model
+weights and the same conversational context. Quorum addresses this with
+three structural mechanisms:
+
+1. **Per-agent system prompts**, each derived from a real entity in the
+   knowledge graph. The agent representing *Wuhan University* gets a
+   different system prompt from *the Student Affairs Office*.
+2. **Stance and bias tracking** across rounds. Each agent enters with a
+   declared stance (`support` / `oppose` / `neutral`) and a stated bias.
+   Disagreement is data, not noise.
+3. **A consensus moderator** that summarises the swarm position and
+   explicitly lists dissenting agents at the end of the run.
+
+## Documentation map
+
+- **[Quickstart](/docs/quickstart)** — install Quorum and run your first
+  simulation in five minutes
+- **[Concepts](/docs/concepts)** — the data model, the seven pipeline
+  stages, and the architecture at a glance
+- **[Workspace guide](/docs/workspace-guide)** — how to drive the web UI
+  end to end
+- **[API reference](/docs/api-reference)** — every REST endpoint with
+  request and response shapes
+- **[Configuration](/docs/configuration)** — environment variables, LLM
+  providers, persistence, and performance tuning
+- **[Deployment](/docs/deployment)** — running Quorum with Docker Compose
+  or as a managed service
+- **[Troubleshooting](/docs/troubleshooting)** — common errors and how to
+  diagnose them
+- **[Local development](/docs/local-development)** — running the stack
+  from source for contributors
+
+## License
+
+Quorum is open source under the MIT license. Contributions are welcome on
+GitHub.
