@@ -382,8 +382,8 @@ function NodeDetailPanel({
         </div>
       ) : (
         <div className="bg-[var(--card)] border border-[var(--line)] rounded-md p-3 text-[11px] text-[var(--muted)] leading-relaxed">
-          This entity is in the graph but doesn't have an associated agent yet (it
-          may be a concept, event, or document, or env setup hasn't run).
+          This entity is in the graph but doesn&apos;t have an associated agent yet (it
+          may be a concept, event, or document, or env setup hasn&apos;t run).
         </div>
       )}
     </motion.div>

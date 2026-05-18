@@ -431,7 +431,9 @@ async def generate_agents_for_graph(
             entity_lines=entity_lines,
             n=len(batch),
         )
-        system = PERSONA_BATCH_PROMPT.format(n=len(batch))
+        # PERSONA_BATCH_PROMPT embeds a literal JSON example, so str.format()
+        # would misread its braces. {n} is the only real placeholder.
+        system = PERSONA_BATCH_PROMPT.replace("{n}", str(len(batch)))
 
         try:
             llm = get_llm()
