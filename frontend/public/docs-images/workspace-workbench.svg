@@ -1,0 +1,107 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="980" rx="28" fill="#F7F1E7"/>
+  <rect x="38" y="34" width="1524" height="912" rx="24" fill="#FFFDF9" stroke="#E2D7C6" stroke-width="2"/>
+  <rect x="38" y="34" width="1524" height="68" rx="24" fill="#FFFDF9"/>
+  <path d="M38 102H1562" stroke="#E5E4E2" stroke-width="2"/>
+
+  <text x="88" y="76" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Quorum</text>
+
+  <rect x="316" y="49" width="120" height="38" rx="11" fill="#FFFFFF" stroke="#D9D8D6"/>
+  <text x="347" y="73" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Workbench</text>
+  <rect x="444" y="49" width="92" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="475" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Graph</text>
+  <rect x="544" y="49" width="96" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="575" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Agents</text>
+
+  <rect x="698" y="48" width="140" height="40" rx="20" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <circle cx="728" cy="68" r="7" fill="#00C851"/>
+  <text x="745" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="15" font-weight="700">Report ready</text>
+
+  <rect x="1364" y="46" width="142" height="42" rx="21" fill="#111111"/>
+  <text x="1408" y="72" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="700">New project</text>
+
+  <rect x="58" y="126" width="880" height="744" rx="18" fill="#FFFFFF" stroke="#E5E4E2" stroke-width="2"/>
+  <rect x="954" y="126" width="588" height="744" rx="18" fill="#F8F7F4" stroke="#E5E4E2" stroke-width="2"/>
+
+  <text x="84" y="164" fill="#6A6662" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">LIVE GRAPH</text>
+
+  <line x1="168" y1="310" x2="356" y2="250" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="356" y1="250" x2="522" y2="336" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="522" y1="336" x2="702" y2="284" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="356" y1="250" x2="432" y2="470" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="432" y1="470" x2="624" y2="560" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="624" y1="560" x2="746" y2="454" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="522" y1="336" x2="624" y2="560" stroke="#D9C8B3" stroke-width="3"/>
+  <line x1="212" y1="566" x2="432" y2="470" stroke="#D9C8B3" stroke-width="3"/>
+
+  <circle cx="168" cy="310" r="32" fill="#FFEEE6" stroke="#FF4500" stroke-width="3"/>
+  <circle cx="356" cy="250" r="38" fill="#E8F4EB" stroke="#2F8C56" stroke-width="3"/>
+  <circle cx="522" cy="336" r="35" fill="#E5EEF8" stroke="#4C7CB3" stroke-width="3"/>
+  <circle cx="702" cy="284" r="34" fill="#F3ECFB" stroke="#7D59B6" stroke-width="3"/>
+  <circle cx="432" cy="470" r="37" fill="#FFF4DE" stroke="#C8922E" stroke-width="3"/>
+  <circle cx="624" cy="560" r="41" fill="#FBE7DF" stroke="#C76839" stroke-width="3"/>
+  <circle cx="746" cy="454" r="31" fill="#E7F4F2" stroke="#2B7A74" stroke-width="3"/>
+  <circle cx="212" cy="566" r="29" fill="#F8E8EF" stroke="#BE5C7A" stroke-width="3"/>
+
+  <text x="135" y="316" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Quorum</text>
+  <text x="318" y="255" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Platform</text>
+  <text x="487" y="341" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Architect</text>
+  <text x="670" y="289" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Docs</text>
+  <text x="397" y="475" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Activation</text>
+  <text x="586" y="565" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Simulation</text>
+  <text x="718" y="459" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Report</text>
+  <text x="186" y="571" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Offline</text>
+
+  <rect x="84" y="704" width="828" height="138" rx="16" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="108" y="738" fill="#6A6662" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">SELECTED NODE</text>
+  <text x="108" y="778" fill="#111111" font-family="Arial, sans-serif" font-size="28" font-weight="700">Senior Platform Architect</text>
+  <text x="108" y="814" fill="#686562" font-family="Arial, sans-serif" font-size="18">Graph and stage cards stay synchronized because every update re-renders from the same persisted project object.</text>
+
+  <text x="980" y="164" fill="#6A6662" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">WORKBENCH</text>
+
+  <rect x="980" y="182" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <circle cx="1018" cy="223" r="12" fill="#DDF5E6"/>
+  <path d="M1011 223L1016 228L1026 216" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1044" y="214" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">01 Ontology generation</text>
+  <text x="1044" y="242" fill="#686562" font-family="Arial, sans-serif" font-size="16">10 entity types, 8 relation types</text>
+
+  <rect x="980" y="276" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <circle cx="1018" cy="317" r="12" fill="#DDF5E6"/>
+  <path d="M1011 317L1016 322L1026 310" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1044" y="308" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">02 Graph build</text>
+  <text x="1044" y="336" fill="#686562" font-family="Arial, sans-serif" font-size="16">16 nodes, 21 typed edges</text>
+
+  <rect x="980" y="370" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <circle cx="1018" cy="411" r="12" fill="#DDF5E6"/>
+  <path d="M1011 411L1016 416L1026 404" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1044" y="402" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">03 Agent personas</text>
+  <text x="1044" y="430" fill="#686562" font-family="Arial, sans-serif" font-size="16">5 agents generated from speaker-capable entities</text>
+
+  <rect x="980" y="464" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <circle cx="1018" cy="505" r="12" fill="#DDF5E6"/>
+  <path d="M1011 505L1016 510L1026 498" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1044" y="496" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">04 Simulation config</text>
+  <text x="1044" y="524" fill="#686562" font-family="Arial, sans-serif" font-size="16">Time model, activity profiles, platform weights</text>
+
+  <rect x="980" y="558" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <circle cx="1018" cy="599" r="12" fill="#DDF5E6"/>
+  <path d="M1011 599L1016 604L1026 592" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1044" y="590" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">05 Activation</text>
+  <text x="1044" y="618" fill="#686562" font-family="Arial, sans-serif" font-size="16">6 hot topics, 4 starter posts, real agent assignments</text>
+
+  <rect x="980" y="652" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <circle cx="1018" cy="693" r="12" fill="#DDF5E6"/>
+  <path d="M1011 693L1016 698L1026 686" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1044" y="684" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">06 Simulation</text>
+  <text x="1044" y="712" fill="#686562" font-family="Arial, sans-serif" font-size="16">Round-based transcript and consensus</text>
+
+  <rect x="980" y="746" width="536" height="96" rx="16" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
+  <text x="1008" y="778" fill="#8D4D24" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">07 REPORT</text>
+  <text x="1008" y="814" fill="#111111" font-family="Arial, sans-serif" font-size="22" font-weight="700">Deployment freeze maintained pending break-glass validation</text>
+
+  <rect x="38" y="890" width="1524" height="56" rx="0" fill="#111111"/>
+  <circle cx="84" cy="918" r="7" fill="#00C851"/>
+  <text x="102" y="923" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16">Report ready: 3 sections</text>
+  <circle cx="368" cy="918" r="7" fill="#FF4500"/>
+  <text x="386" y="923" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16">Project: proj_b9f47ff22270</text>
+</svg>

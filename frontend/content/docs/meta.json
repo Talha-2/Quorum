@@ -3,11 +3,15 @@
   "pages": [
     "index",
     "quickstart",
+    "architecture",
+    "agent-architecture",
     "concepts",
     "pipeline-stages",
     "workspace-guide",
     "api-reference",
     "configuration",
+    "production-readiness",
+    "testing",
     "deployment",
     "troubleshooting",
     "local-development"

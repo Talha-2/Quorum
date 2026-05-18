@@ -118,15 +118,13 @@ If you're still getting 0 agents, your graph genuinely has no
 speaker-capable entities. Edit your brief to mention people or
 institutions explicitly.
 
-### Stage 04 reports take a long time
+### Stage 04 config takes a long time
 
 **Symptom:** simulation/prepare takes 30+ seconds.
 
-**Cause:** Stage 04 makes 4 sequential LLM calls plus N batches for
-agent activity configs (8 agents per batch). For 16 agents that's
-1 (time) + 1 (event) + 2 (activity) + 0 (platform, no LLM) = 4 calls.
-Most LLM providers take 5-10 seconds per call, so 30 seconds total
-is normal.
+**Cause:** Stage 04 now generates time config plus N activity batches.
+Stage 05 activation is a separate call. For larger agent sets, the
+batched activity generation is usually the slowest part.
 
 **Fix:** if it's blocking your dev loop, reduce the agent count
 upstream by simplifying the brief. Stage 04 cost scales linearly with

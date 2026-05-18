@@ -1,0 +1,85 @@
+<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="860" rx="32" fill="#F7F1E7"/>
+  <rect x="44" y="44" width="1312" height="772" rx="28" fill="#FFFDF8" stroke="#D6CBB8" stroke-width="2"/>
+  <text x="76" y="108" fill="#1E1A16" font-family="Arial, sans-serif" font-size="34" font-weight="700">Quorum Production Pipeline</text>
+  <text x="76" y="144" fill="#6C6358" font-family="Arial, sans-serif" font-size="18">Strict sequential execution from project creation to report generation</text>
+
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#BDAE96" flood-opacity="0.2"/>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0 0L12 6L0 12V0Z" fill="#8A5A2B"/>
+    </marker>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="80" y="190" width="250" height="120" rx="20" fill="#F8E5C6" stroke="#D98F2B" stroke-width="2"/>
+    <text x="108" y="230" fill="#8A4F13" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 00</text>
+    <text x="108" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Create Project</text>
+    <text x="108" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Brief, constraints, signals,</text>
+    <text x="108" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">optional uploaded documents</text>
+
+    <rect x="380" y="190" width="250" height="120" rx="20" fill="#FDE4D7" stroke="#D1672B" stroke-width="2"/>
+    <text x="408" y="230" fill="#9C4218" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 01</text>
+    <text x="408" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Ontology</text>
+    <text x="408" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Topic-specific entity and</text>
+    <text x="408" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">relation schema</text>
+
+    <rect x="680" y="190" width="250" height="120" rx="20" fill="#FBE8F0" stroke="#C34C72" stroke-width="2"/>
+    <text x="708" y="230" fill="#8C3552" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 02</text>
+    <text x="708" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Graph Build</text>
+    <text x="708" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Typed nodes, edges, and</text>
+    <text x="708" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">graph statistics</text>
+
+    <rect x="980" y="190" width="250" height="120" rx="20" fill="#E4EEF9" stroke="#3B6EA8" stroke-width="2"/>
+    <text x="1008" y="230" fill="#254E7A" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 03</text>
+    <text x="1008" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Environment</text>
+    <text x="1008" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Speaker filter plus one</text>
+    <text x="1008" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">agent persona per entity</text>
+
+    <rect x="80" y="420" width="250" height="120" rx="20" fill="#E5F4EA" stroke="#2F8C56" stroke-width="2"/>
+    <text x="108" y="460" fill="#21633D" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 04</text>
+    <text x="108" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Simulation Config</text>
+    <text x="108" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Time model, activity</text>
+    <text x="108" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">profiles, platform weights</text>
+
+    <rect x="380" y="420" width="250" height="120" rx="20" fill="#F3E8FB" stroke="#7A49B9" stroke-width="2"/>
+    <text x="408" y="460" fill="#58348A" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 05</text>
+    <text x="408" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Activation</text>
+    <text x="408" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Narrative direction, hot</text>
+    <text x="408" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">topics, round-zero posts</text>
+
+    <rect x="680" y="420" width="250" height="120" rx="20" fill="#FBE7DF" stroke="#C76839" stroke-width="2"/>
+    <text x="708" y="460" fill="#8A4A25" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 06</text>
+    <text x="708" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Simulation</text>
+    <text x="708" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Round-based debate,</text>
+    <text x="708" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">transcript, consensus</text>
+
+    <rect x="980" y="420" width="250" height="120" rx="20" fill="#E7F4F2" stroke="#2B7A74" stroke-width="2"/>
+    <text x="1008" y="460" fill="#1F5C58" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 07</text>
+    <text x="1008" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Report</text>
+    <text x="1008" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Outline planning, section</text>
+    <text x="1008" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">writing, markdown export</text>
+
+    <rect x="575" y="630" width="250" height="120" rx="20" fill="#F3F0EA" stroke="#837560" stroke-width="2"/>
+    <text x="603" y="670" fill="#5D5243" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 08</text>
+    <text x="603" y="702" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Agent Chat</text>
+    <text x="603" y="730" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Post-run follow-up with one</text>
+    <text x="603" y="752" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">specific agent persona</text>
+  </g>
+
+  <path d="M330 250H380" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M630 250H680" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M930 250H980" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1105 310V365H205V420" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M330 480H380" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M630 480H680" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M930 480H980" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <path d="M1105 540V590H700V630" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+
+  <rect x="1050" y="640" width="210" height="92" rx="18" fill="#FFF7E8" stroke="#D6B671" stroke-width="2"/>
+  <text x="1076" y="678" fill="#7A5A1D" font-family="Arial, sans-serif" font-size="18" font-weight="700">Operational guards</text>
+  <text x="1076" y="706" fill="#6B604E" font-family="Arial, sans-serif" font-size="15">• per-project lock</text>
+  <text x="1076" y="728" fill="#6B604E" font-family="Arial, sans-serif" font-size="15">• persisted after mutation</text>
+</svg>

@@ -1,0 +1,147 @@
+---
+title: Architecture
+description: "Production architecture for Quorum: one backend pipeline, one workspace UI, local persistence, and a provider-agnostic LLM layer."
+---
+
+## System shape
+
+Quorum is a two-service application:
+
+- **Frontend**: Next.js 14 app router under `frontend/`
+- **Backend**: FastAPI service under `backend/`
+
+The frontend owns presentation, operator workflow, graph rendering, and
+documentation. The backend owns project state, pipeline execution, persistence,
+and all LLM-driven artifact generation.
+
+![Quorum system architecture diagram](/docs-images/system-architecture.svg)
+
+*Architecture diagram: a single workspace UI drives one project router, which
+coordinates stage services, persistence, and the provider abstraction.*
+
+## Source of truth
+
+The canonical runtime path is:
+
+- Frontend workspace: `frontend/app/workspace/page.tsx`
+- Workspace implementation: `frontend/components/workspace/quorum-pipeline.tsx`
+- Backend entrypoint: `backend/src/quorum_backend/main.py`
+- Production pipeline router: `backend/src/quorum_backend/pipeline/router.py`
+
+The repository previously carried a second legacy simulation path. That stale
+surface has been removed so the product is now centered on a single project API
+and a single workspace.
+
+## Request lifecycle
+
+Every operator action follows the same production path:
+
+1. The user clicks a stage button in the workspace UI.
+2. `frontend/lib/pipeline-api.ts` sends a REST request to `/api/projects/*`.
+3. `backend/src/quorum_backend/pipeline/router.py` loads the project, acquires the per-project
+   mutation lock, validates prerequisites, and decides which stage service runs.
+4. The selected service generates or updates one artifact: ontology, graph,
+   agents, config, activation, transcript, consensus, or report.
+5. `backend/src/quorum_backend/llm.py` is the only boundary that talks to a model provider, so
+   retries and offline fallback behavior stay centralized.
+6. The router persists the mutated `Project` and returns the full serialized
+   project back to the frontend.
+7. The workspace re-renders all views from that returned state. The same
+   project can also be re-fetched later through `GET /api/projects/{id}`.
+
+The backend persists the entire in-memory project store to a local pickle file.
+That is intentionally simple: it makes local development and single-node
+deployment practical without requiring Postgres before the product model is
+stable.
+
+## Backend architecture
+
+`backend/src/quorum_backend/main.py` is intentionally thin:
+
+- lifespan startup initializes the LLM provider
+- CORS is configured
+- the pipeline router is mounted
+- `/health` exposes provider and project-store status
+
+`backend/src/quorum_backend/pipeline/router.py` is the orchestration boundary. It is responsible
+for:
+
+- project creation and serialization
+- upload gating
+- stage ordering and prerequisite validation
+- per-project execution locking
+- persistence after mutation
+- pipeline progress reporting
+
+That router is the production control plane. Stage services stay focused on
+artifact generation, while the router enforces the operational rules that keep
+the pipeline coherent under real use.
+
+Each stage then delegates to a focused service:
+
+- `ontology_generator.py`
+- `graph_builder.py`
+- `env_setup.py`
+- `simulation_config_generator.py`
+- `simulation_runner.py`
+- `report_generator.py`
+
+## Frontend architecture
+
+The frontend follows the same boundary:
+
+- the landing page explains the product
+- the workspace drives the pipeline one stage at a time
+- the graph and agent views are projections of the same `Project`
+- Fumadocs serves all product and contributor documentation
+
+The active workspace is no longer split across multiple paradigms. The old
+simulation-specific hooks and components were removed to keep the operator path
+coherent.
+
+In practice that means the workbench, graph view, and agents view are all
+projections of one backend `Project` object rather than partially independent
+screens with separate data assumptions.
+
+## Persistence model
+
+Projects are stored in memory for fast request handling and written to disk
+after every successful mutation. That gives Quorum four useful properties:
+
+1. local runs survive backend restarts
+2. every stage response can be re-fetched by `GET /api/projects/{id}`
+3. the UI can render intermediate artifacts directly from persisted state
+4. later migration to a database stays localized to the router boundary
+
+The persistence contract is intentionally simple but strict: no successful stage
+response is returned without first updating the persisted project store.
+
+## LLM abstraction
+
+The backend supports:
+
+- Google Gemini
+- Anthropic Claude
+- Azure AI Foundry
+- a local deterministic provider for offline development and tests
+
+The provider abstraction is not just a convenience layer. It centralizes retry
+behavior, content-filter handling, and the fallback path used by automated
+tests.
+
+The local deterministic provider matters because it keeps the production shape
+testable even when no external model vendor is configured. That is how the
+backend end-to-end tests verify the real pipeline rather than a mocked branch.
+
+## Why the architecture is stricter now
+
+The production refactor made three deliberate changes:
+
+1. **One API surface**: the project pipeline is the only supported runtime API.
+2. **Seven real stages**: simulation config and activation are now separate
+   backend stages, not one stage presented as two.
+3. **Operational safeguards**: uploads are frozen once the pipeline starts, each
+   stage is idempotent, and per-project locks prevent concurrent mutation races.
+
+That combination makes the system easier to reason about, easier to test, and
+far less likely to drift away from its documentation again.

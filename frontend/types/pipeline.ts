@@ -7,6 +7,7 @@ export type ProjectState =
   | 'graph_completed'
   | 'env_ready'
   | 'config_ready'
+  | 'activation_ready'
   | 'simulating'
   | 'sim_completed'
   | 'report_ready'
@@ -130,6 +131,7 @@ export interface EventConfig {
   scheduled_events: unknown[]
   hot_topics: string[]
   narrative_direction: string
+  generated_at: string
 }
 
 export interface PlatformConfig {
@@ -144,7 +146,7 @@ export interface PlatformConfig {
 export interface SimulationParameters {
   time_config: TimeSimulationConfig
   agent_configs: AgentActivityConfig[]
-  event_config: EventConfig
+  event_config: EventConfig | null
   feed_config: PlatformConfig | null
   community_config: PlatformConfig | null
   generation_reasoning: string
@@ -205,6 +207,7 @@ export interface Project {
   state: ProjectState
   created_at: string
   updated_at: string
+  last_error?: string | null
   ontology: Ontology | null
   graph_stats: GraphStats | null
   agent_count: number
@@ -212,8 +215,25 @@ export interface Project {
   graph?: PipelineGraph
   agents?: AgentProfile[]
   simulation_parameters?: SimulationParameters
+  activation?: EventConfig
   debate_messages?: DebateMessage[]
   consensus?: Consensus
   report?: Report
   uploaded_documents?: UploadedDocumentMeta[]
+  pipeline?: {
+    project_id: string
+    state: ProjectState
+    failed: boolean
+    last_error?: string | null
+    current_step: string | null
+    steps: Array<{
+      id: string
+      order: number
+      label: string
+      detail: string
+      path?: string
+      done: boolean
+      optional: boolean
+    }>
+  }
 }

@@ -1,0 +1,113 @@
+---
+title: Production Readiness
+description: "Operational safeguards in Quorum: stage locking, idempotency, persistence, health checks, and deployment expectations."
+---
+
+## What "production-ready" means here
+
+Quorum is still a single-node application, but the codebase now behaves like a
+production system rather than a demo. The key properties are:
+
+- one canonical API surface
+- explicit stage ordering
+- persisted project artifacts
+- health visibility
+- deterministic offline verification
+- reduced stale code surface
+
+## Sequential stage execution
+
+The backend enforces stage order through the project router:
+
+- graph build requires ontology
+- environment setup requires graph
+- config requires agents
+- activation requires config
+- simulation requires activation
+- report requires a completed simulation
+
+This is validated server-side. The frontend reflects the order, but the backend
+is the real enforcement boundary.
+
+## Per-project locking
+
+Mutating endpoints acquire a per-project lock. That prevents races such as:
+
+- two ontology calls competing to overwrite the same project
+- simulation and report running at the same time
+- activation and simulation interleaving mid-run
+
+The lock scope is per project, not global, so one project can progress without
+blocking unrelated work.
+
+## Idempotent stage behavior
+
+Completed stages return the existing artifact instead of regenerating by
+default. That gives safer retry behavior for operators and scripts:
+
+- if a request times out client-side, repeating it is safe
+- if the frontend refreshes, the project can be re-fetched without ambiguity
+- the API surface is easier to automate
+
+## Input freezing
+
+Reality-seed uploads are allowed only before ontology generation begins. This
+is deliberate. Changing source inputs after downstream artifacts exist would
+invalidate the ontology, graph, agents, config, activation, and transcript.
+
+## Persistence
+
+Every successful mutation persists the in-memory store to disk. The store is
+currently a pickle file because the product is optimized for:
+
+- local development
+- single-host deployment
+- easy restart recovery
+
+The router isolates persistence concerns so a future database-backed
+implementation can replace the store without rewriting the stage services.
+
+## Health checks
+
+`GET /health` exposes:
+
+- service name
+- app version
+- configured LLM provider
+- active LLM provider
+- whether the active provider matches configuration
+- project count
+- project store path
+
+This is enough for local smoke checks, Docker health checks, and basic service
+monitoring.
+
+## Offline verification
+
+The local deterministic provider now supports the production pipeline prompts.
+That gives two important benefits:
+
+1. backend end-to-end tests can run without a vendor model
+2. contributors can validate architecture changes even when they do not have API
+   keys configured
+
+## Documentation as part of the product
+
+The docs are served by the frontend through Fumadocs. That means:
+
+- product docs ship with the app
+- API and architecture docs can be updated in the same change as code
+- stale root markdown docs no longer need to carry product truth
+
+## Remaining boundaries
+
+Quorum is stronger than before, but it is still intentionally simple:
+
+- single-process backend
+- local file persistence by default
+- no job queue
+- no multi-node coordination
+
+That is acceptable for the current operating model. If the deployment shape
+changes, the next major step is replacing the store and stage executor with a
+database-backed job system rather than reintroducing ad hoc parallel flows.

@@ -1,0 +1,92 @@
+---
+title: Testing
+description: "How to verify Quorum end to end: backend pipeline tests, offline provider behavior, and frontend production builds."
+---
+
+## Verification strategy
+
+Quorum now validates the production path directly instead of relying on tests
+for the removed legacy API.
+
+There are two primary verification layers:
+
+1. **Backend end-to-end tests** against `/api/projects/*`
+2. **Frontend production build** with Next.js type checking
+
+## Backend tests
+
+The backend pipeline tests live under `backend/tests/test_pipeline_e2e.py`.
+
+They verify:
+
+- project creation
+- upload handling
+- pipeline progress reporting
+- ontology generation
+- graph build
+- agent generation
+- simulation config generation
+- activation generation
+- simulation run
+- report generation
+- post-run agent chat
+- sequential `run-next` behavior
+- upload locking after the pipeline starts
+
+The tests use the local deterministic provider, so they do not need external
+API keys.
+
+Run them with:
+
+```bash
+backend\.venv\Scripts\python -m pytest backend\tests -q
+```
+
+## Frontend verification
+
+The frontend should be verified as a production build, not only in dev mode.
+
+Run:
+
+```bash
+cd frontend
+npm run build
+```
+
+That catches:
+
+- TypeScript drift
+- app-router route issues
+- docs build issues
+- stale imports from removed code paths
+
+## Why offline testing matters
+
+The local provider now emits valid outputs for the production pipeline prompts.
+This matters because the previous setup only exercised the legacy simulation
+path well. With the current design, contributors can validate the real product
+without reaching for vendor APIs first.
+
+## When changing the pipeline
+
+If you modify stage ordering, artifact schemas, or project serialization:
+
+1. update the backend test
+2. run the backend suite
+3. run the frontend build
+4. update the Fumadocs pages that describe the changed behavior
+
+Code and docs should move together. The refactor was specifically aimed at
+removing drift between implementation and documentation.
+
+## Suggested future coverage
+
+Good next additions would be:
+
+- router unit tests for invalid stage transitions
+- upload parsing edge-case tests
+- report generation fallback tests
+- visual smoke coverage for the workspace stage cards
+
+The current coverage is already materially better than before because it
+exercises the actual production pipeline instead of an unrelated older path.

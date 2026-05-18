@@ -1,0 +1,151 @@
+---
+title: Agent Architecture
+description: "How Quorum turns graph entities into agents, configures their behavior, seeds activation, and carries them through debate and chat."
+---
+
+## Overview
+
+Quorum does not start with a fixed cast of agents. The agent layer is generated
+from the knowledge graph built for the current project. That design keeps the
+simulation tied to the actual entities implied by the brief instead of a
+generic preset.
+
+The lifecycle is:
+
+```text
+brief + documents
+  -> ontology
+  -> graph
+  -> speaker-capable entity filter
+  -> agent personas
+  -> activity config
+  -> activation plan
+  -> debate turns
+  -> post-run agent chat
+```
+
+## Entity to agent mapping
+
+The graph may contain many node types, but not every node should become a
+speaker. Quorum filters for speaker-capable entities before persona generation.
+
+Included patterns are actor-like types such as:
+
+- people
+- experts
+- organizations
+- outlets
+- agencies
+- companies
+- communities
+- stakeholder groups
+
+Excluded patterns are non-speaking abstractions such as:
+
+- policies
+- ideologies
+- evidence
+- events
+- claims
+- documents
+
+This matters for both realism and provider safety. Treating an abstract concept
+as if it can speak leads to bad simulations and increases content-filter risk.
+
+## Persona generation
+
+Each selected entity becomes exactly one `AgentProfile`.
+
+An agent includes:
+
+- identity: `id`, `user_name`, `name`, `role`
+- narrative persona: `bio`, `persona`, `expertise`, `interested_topics`
+- behavior signals: `stance`, `bias`, `optimism`, `risk_tolerance`, `caution`
+- rendered demographics: `age`, `gender`, `mbti`, `country`, `profession`
+- provenance: `source_entity_id`, `source_entity_type`
+
+The persona text is structured into four sections:
+
+1. `Background`
+2. `Behavior Profile`
+3. `Unique Memory`
+4. `Social Network`
+
+That structure is useful later because the frontend can render richer agent
+detail without inventing extra parsing rules.
+
+## Activity configuration
+
+After personas exist, the backend generates `AgentActivityConfig` records. These
+do not change who an agent is; they define how active and influential the agent
+is during the simulated environment.
+
+Key fields:
+
+- `activity_level`
+- `posts_per_hour`
+- `comments_per_hour`
+- `active_hours`
+- `response_delay_min`
+- `response_delay_max`
+- `sentiment_bias`
+- `influence_weight`
+
+This configuration is generated separately from the persona so the system can
+change behavior without regenerating identity.
+
+## Activation plan
+
+Activation is now its own stage. The backend generates:
+
+- `narrative_direction`
+- `hot_topics`
+- `initial_posts`
+
+Each initial post is then assigned to a real agent via deterministic type
+matching. That matters because the activation output is not decorative. The
+simulation runner seeds those posts into round `0` so later rounds inherit a
+starting narrative instead of pretending the debate begins from silence.
+
+## Debate behavior
+
+The simulation runner consumes:
+
+- the project brief
+- agent personas
+- the activation context
+- the running transcript
+
+Each turn produces a structured JSON object:
+
+- `message`
+- `confidence`
+- `stance`
+
+Consensus is generated only after the round-by-round transcript exists.
+
+## Post-run chat
+
+Agent chat is intentionally downstream from the simulation. The agent chat
+prompt includes:
+
+- the agent's persona
+- activation context
+- a transcript summary
+- the consensus summary
+
+That keeps follow-up questions grounded in the completed run rather than
+restarting the agent from an empty prompt.
+
+## Extension rules
+
+If you change agent behavior, keep these boundaries intact:
+
+- ontology changes define the world
+- graph changes define entities and relations
+- persona changes define who the agent is
+- activity changes define how often the agent participates
+- activation changes define the simulated starting narrative
+- simulation changes define turn-taking and transcript evolution
+
+Mixing those layers makes the system harder to debug and easier to break.

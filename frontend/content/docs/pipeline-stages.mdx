@@ -1,287 +1,218 @@
 ---
 title: Pipeline stages
-description: Detailed reference for each of the seven stages in the Quorum pipeline — what they produce, how they fail, and how to invoke them programmatically.
+description: "Detailed behavior of the production Quorum pipeline, including stage prerequisites, outputs, robustness measures, and how the stages connect."
 ---
 
-This page documents each stage in detail. Use it as a reference when
-building against the API or debugging a stuck run. For a high-level
-overview, see [Concepts](/docs/concepts). For the JSON request and
-response shapes, see the [API reference](/docs/api-reference).
+## Overview
 
-## Stage 0 — Upload reality seeds
-
-**Endpoint:** `POST /api/projects/{id}/upload`
+The production pipeline is sequential and project-based. Each stage validates
+its prerequisites server-side, persists its output, and exposes the updated
+project immediately after completion.
 
-Optional. Attach PDF, Markdown, or plain text documents to a project
-before generating the ontology. The extracted text is fed into the
-ontology generator and graph builder as context, so the schema is
-grounded in the actual document content rather than just your brief.
-
-**Constraints:**
-
-- Supported types: `.pdf`, `.md`, `.markdown`, `.txt`
-- Max 8 MB per file
-- Up to 5 files per project
-- Total context capped at 60 KB of extracted text per project
-
-PDF extraction uses `pypdf`. Encoding detection for text/Markdown falls
-back through UTF-8, UTF-8-SIG, latin-1, cp1252, and gb18030 before
-giving up with `errors='replace'`.
+There are seven primary stages after project creation:
 
-## Stage 01 — Ontology generation
-
-**Endpoint:** `POST /api/projects/{id}/graph/ontology/generate`
+1. Ontology generation
+2. Graph build
+3. Environment setup
+4. Simulation config
+5. Initial activation
+6. Simulation
+7. Report generation
 
-The LLM designs a typed schema for this specific brief. Constraints
-enforced on the output:
+There is also:
 
-- **Exactly 10 entity types**: 8 concrete topic-specific types plus
-  `Person` and `Organization` as required fallbacks
-- **6 to 10 edge types**, all in `UPPER_SNAKE_CASE`
-- **Each edge type lists 1-3 valid `(source_type, target_type)` pairs**
-- **`is_individual`** is `true` for entity types representing single
-  people, `false` for groups, organizations, or abstract things
-
-The output is normalized: PascalCase casing is enforced on entity type
-names, edge type names are coerced to `UPPER_SNAKE_CASE`, and the
-fallback `Person` / `Organization` types are added if the LLM omitted
-them. If the LLM returns more than 10 types, the first 8 concrete plus
-the 2 fallbacks are kept.
-
-**Failure modes:**
-
-- LLM returns invalid JSON → endpoint returns `500`. Retry with the
-  same call.
-- LLM returns an empty ontology → endpoint returns `500` with detail
-  `"Ontology generation failed"`.
-- Provider rate limit → caller should back off and retry.
+- **Stage 0**: project creation and optional reality-seed uploads
+- **Stage 8**: post-run agent chat
 
-## Stage 02 — GraphRAG build
-
-**Endpoint:** `POST /api/projects/{id}/graph/build`
-
-Uses the generated ontology + the brief + any uploaded document text
-to extract concrete entities and relations into a typed knowledge
-graph. The default in-memory builder makes a single LLM call asking
-for all nodes and all edges as a JSON object.
-
-**Robustness:** the graph builder is the single heaviest call in the
-pipeline (12-40 nodes plus 15-60 edges of JSON). Reasoning models can
-burn their token budget on chain-of-thought before they finish writing
-the JSON. To handle this:
-
-- The call is **retried with progressively larger token budgets**
-  (6000 → 9000 → 12000) when truncation is detected
-- A **best-effort JSON repair** function finds the last fully-closed
-  object, drops any partial trailing entry, and balances the
-  outstanding brackets and braces, recovering as many entities as
-  possible from a truncated response
-- **Type validation** drops nodes whose declared type isn't in the
-  ontology, and edges whose endpoints don't exist in the resolved
-  node list
-
-**Output:** a graph with `nodes` and `edges` lists, plus a `stats`
-summary (`entity_nodes`, `relation_edges`, `schema_types`).
-
-## Stage 03 — Environment setup
-
-**Endpoint:** `POST /api/projects/{id}/env/setup`
-
-Generates one agent persona per **speaker-capable** entity in the
-graph. A speaker filter excludes entities representing events,
-ideologies, evidence, claims, places, and abstract concepts — anything
-that can't plausibly "speak" or "argue" gets dropped.
+![Quorum pipeline stage flow chart](/docs-images/pipeline-flow.svg)
 
-**Speaker filter logic:**
-
-1. Tokenize the entity type name (CamelCase → individual words)
-2. If the **last token** (the head noun) is in the speaker list
-   (`person`, `outlet`, `organization`, etc.), include it
-3. If the head noun is in the non-speaker list (`event`, `policy`,
-   `claim`, `evidence`, etc.), exclude it
-4. If neither, scan all tokens with the same logic
-5. Fall back to the LLM's `is_individual` flag
-
-This handles edge cases like `MediaOutlet` (head noun `outlet` is a
-speaker) versus `UniversityPolicy` (head noun `policy` is not), and
-common agentive suffixes like `PolicyMaker`, `BusinessOwner`,
-`StakeholderGroup`.
+*Flow chart: the backend enforces this order even if a caller skips around in
+the UI or tries to automate execution through the API.*
 
-**Persona generation:** for each surviving entity, the LLM generates a
-rich profile in batches of 8 entities per call. Each persona has:
+## How to read the flow
 
-- `bio` — 200-character social-media-style bio
-- `persona` — 1500-2000 character long-form text with four labelled
-  sections: `Background`, `Behavior Profile`, `Unique Memory`,
-  `Social Network`
-- Apparent demographics: `age`, `gender`, `mbti`, `country`, `profession`
-- Personality vector: `optimism`, `risk_tolerance`, `caution`
-- `stance`, `bias`, `expertise`, `interested_topics`
+The important detail is not just the labels, it is where responsibility sits:
 
-**Username generation** matches the convention `<slug>_<3 digit>` —
-the entity name is lowercased, stripped to alphanumeric, truncated to
-18 characters, and joined with a random 100-999 suffix.
-(Example: `Wuhan University` → `wuhanuniversity_482`.)
+- the frontend exposes the stages one by one
+- the backend validates prerequisites again on every mutating request
+- `pipeline/run-next` advances exactly one required stage per call
+- uploads are intentionally outside the main numbered sequence and close once
+  ontology generation begins
 
-## Stage 04 — Generate config
+## Stage 0: Create project and upload source documents
 
-**Endpoint:** `POST /api/projects/{id}/simulation/prepare`
+Endpoints:
 
-Runs four sequential LLM calls to produce the full simulation
-parameters. Each step has its own prompt, fallback, and reasoning
-output.
+- `POST /api/projects`
+- `POST /api/projects/{id}/upload`
 
-**Step 1 — TimeSimulationConfig** (1 LLM call):
-
-Designs the time-of-day activity rhythm for the swarm. Outputs:
-
-- `total_simulation_hours` (24-168, default 72)
-- `minutes_per_round` (30-120, default 60)
-- `agents_per_hour_min`, `agents_per_hour_max` (clamped to 0.9 × agent
-  count)
-- Hour-of-day activity multipliers: `peak_hours` (×1.5),
-  `work_hours` (×0.7), `morning_hours` (×0.4),
-  `off_peak_hours` (×0.05)
-- A free-text `reasoning` paragraph explaining the choices
+This stage creates the project shell and optionally attaches source documents.
+Uploads are allowed only before ontology generation begins.
 
-The prompt instructs the LLM to adjust based on the audience
-implied by the brief (students peak at 21-23, media is all-day,
-officials only work hours, breaking news may have all-night
-discussion).
+Why that restriction exists:
 
-**Step 2 — EventConfig** (1 LLM call):
+- later stages depend on the source context
+- changing inputs mid-pipeline would invalidate downstream artifacts
 
-Designs the initial events and narrative orchestration. Outputs:
+## Stage 1: Ontology generation
 
-- `hot_topics` — 4-6 hashtag-style keywords
-- `narrative_direction` — 2-3 sentence description of how public
-  opinion is likely to evolve
-- `initial_posts` — 3-6 starter posts that seed the simulation, each
-  with a `content` string and a `poster_type` matching one of the
-  ontology entity types
+Endpoint:
 
-**Step 3 — AgentActivityConfig batches** (N LLM calls, 8 agents per
-batch):
+- `POST /api/projects/{id}/graph/ontology/generate`
 
-Per-agent behavior profile. For each agent the LLM produces:
+This stage asks the LLM to design a topic-specific schema for the brief and any
+uploaded material.
 
-- `activity_level` (0-1)
-- `posts_per_hour`, `comments_per_hour`
-- `active_hours` array (0-23)
-- `response_delay_min`, `response_delay_max` (simulated minutes)
-- `sentiment_bias` (-1 to 1)
-- `stance` (`supportive` / `opposing` / `neutral` / `observer`)
-- `influence_weight` (0-3)
+Output:
 
-The prompt provides type-specific guidance: officials get low
-activity + slow response + high influence; media gets all-day +
-fast response + high influence; individuals get evening peaks +
-fast response + low influence.
+- exactly 10 entity types after normalization
+- 6 to 10 edge types after normalization
 
-If a batch fails for any reason, those agents fall back to a
-heuristic config based on entity type.
+Robustness measures:
 
-**Step 4 — Post-processing**:
+- schema normalization
+- required fallback entity types
+- parse validation before the project is advanced
 
-A deterministic post-processor matches each `initial_post`'s
-`poster_type` against the spawned agents using a type-alias table
-(e.g. `mediaoutlet → [media, news, publication, press, journalist]`)
-and assigns a real `poster_agent_id` to each post. If no match is
-found, the highest-influence agent is selected as a fallback.
+## Stage 2: Graph build
 
-**Step 5 — Platform configs** (no LLM):
+Endpoint:
 
-Two platform recommendation algorithm configs are built from
-constants:
+- `POST /api/projects/{id}/graph/build`
 
-- `feed_config` — recency 0.4, popularity 0.3, relevance 0.3,
-  viral threshold 10, echo chamber 0.5
-- `community_config` — recency 0.3, popularity 0.4, relevance 0.3,
-  viral threshold 15, echo chamber 0.6
+This stage extracts concrete nodes and edges using the ontology as the allowed
+schema.
 
-The reasoning from each LLM step is concatenated into
-`generation_reasoning` (a `" | "`-joined string) and stored on the
-`SimulationParameters`.
+Output:
 
-## Stage 05 — Initial activation
+- `graph.nodes`
+- `graph.edges`
+- `graph_stats`
 
-The "Initial activation" view is a render of the `EventConfig`
-produced by Stage 04 — there is no separate API call. The frontend
-displays:
+Robustness measures:
 
-- The narrative direction in a quote-style card
-- The hot topics as colored hashtag pills
-- The initial activation sequence as a list of starter posts, each
-  attributed to its assigned agent
+- truncation-aware JSON handling
+- repair attempts for incomplete JSON
+- type validation against the ontology
 
-## Stage 06 — Run simulation
+## Stage 3: Environment setup
 
-**Endpoint:** `POST /api/projects/{id}/simulation/start`
+Endpoint:
 
-Runs a round-by-round structured debate. Each round selects a diverse
-subset of agents (balancing supporters, opposers, and neutrals in
-round 1; rotating through the rest in subsequent rounds), and asks
-each agent to reason about the brief in character given the running
-transcript.
+- `POST /api/projects/{id}/env/setup`
 
-**Per-turn output schema:** each agent returns a JSON object with
-`message` (2-4 sentences), `confidence` (0-1), and `stance`
-(`support` / `oppose` / `neutral`). Stances can shift across rounds
-as agents respond to each other.
+This stage turns speaker-capable graph entities into agents.
 
-**Content filter handling:** if a turn is blocked by the LLM
-provider's content policy (Azure's `ResponsibleAIPolicyViolation`,
-for instance), the affected agent is skipped cleanly with a warning
-in the project event log. The simulation continues with the
-remaining agents.
+Output:
 
-After all rounds complete, a separate **moderator LLM call**
-produces the consensus: an agreed position, agreement rate,
-confidence level, and a list of dissenting agents with their final
-positions.
+- `agents`
+- `agent_count`
 
-## Stage 07 — Generate report
+Robustness measures:
 
-**Endpoint:** `POST /api/projects/{id}/report/generate`
+- speaker-capable filtering before persona generation
+- batched persona generation
+- fallback personas when a batch fails
 
-Two-stage report generation:
+## Stage 4: Simulation config
 
-**Step 1 — Outline planner** (1 LLM call):
+Endpoint:
 
-The planner reads the brief, the agent roster, the debate transcript,
-the consensus, and any dissents, then designs a 2-5 section outline.
-Each section title is a concrete finding, not a generic category
-label. If the planner LLM call fails, a deterministic fallback
-outline is used (`What the agents agreed on` / `Where the agents
-disagreed` / `Key implications`).
+- `POST /api/projects/{id}/simulation/prepare`
 
-**Step 2 — Section writer** (one LLM call per section):
+This stage generates the structural behavior configuration for the run.
 
-Each section is written independently as 200-400 words of markdown.
-Direct agent quotes are formatted as `>` blockquotes. The full
-markdown report is assembled and stored on the project as
-`{title, summary, sections, markdown, generated_at}`.
+Output:
 
-The user can download the assembled markdown file from the workspace
-UI.
+- `time_config`
+- `agent_configs`
+- `feed_config`
+- `community_config`
 
-## Stage 08 — Deep interaction
+What changed in the production refactor:
 
-**Endpoint:** `POST /api/projects/{id}/agents/{agent_id}/chat`
+- this stage no longer pretends to include activation
+- activation was split into its own explicit stage
 
-Chat with any individual agent in the post-simulation state. The
-agent's system prompt includes its full persona, the debate
-transcript summary, and the consensus, so its responses reflect both
-its in-character voice and its memory of what the swarm discussed.
+## Stage 5: Initial activation
 
-This stage is available immediately after Stage 06 completes; it
-doesn't require Stage 07.
+Endpoint:
 
-## Reading next
+- `POST /api/projects/{id}/simulation/activate`
 
-- **[API reference](/docs/api-reference)** — exact request/response
-  shapes for every endpoint
-- **[Workspace guide](/docs/workspace-guide)** — how each stage
-  appears in the web UI
-- **[Troubleshooting](/docs/troubleshooting)** — what to do when a
-  stage fails
+This stage generates the narrative seed that the simulation actually consumes.
+
+Output:
+
+- `activation.narrative_direction`
+- `activation.hot_topics`
+- `activation.initial_posts`
+
+The backend assigns starter posts to real agents deterministically. The
+simulation runner then injects these posts as round `0` transcript entries.
+
+## Stage 6: Simulation
+
+Endpoint:
+
+- `POST /api/projects/{id}/simulation/start`
+
+The simulation runner uses:
+
+- project brief
+- agent personas
+- activation context
+- transcript-so-far
+
+Output:
+
+- `debate_messages`
+- `consensus`
+
+Round zero is seeded from the activation plan. Later rounds build on that
+context rather than ignoring it.
+
+## Stage 7: Report generation
+
+Endpoint:
+
+- `POST /api/projects/{id}/report/generate`
+
+The report generator plans a structure first, then writes section bodies using
+the transcript and consensus as evidence.
+
+Output:
+
+- report title
+- summary
+- markdown sections
+- full markdown document
+
+## Stage 8: Deep interaction
+
+Endpoint:
+
+- `POST /api/projects/{id}/agents/{agent_id}/chat`
+
+This stage is optional and downstream from the simulation. Agent chat uses the
+persona, activation context, transcript summary, and consensus.
+
+## Sequential execution helper
+
+Endpoint:
+
+- `POST /api/projects/{id}/pipeline/run-next`
+
+This helper executes exactly the next incomplete required stage once. It is
+useful for automation, CLI wrappers, and tests, while still preserving the
+same server-side stage ordering as the UI.
+
+## Operational guarantees
+
+The current pipeline provides these guarantees:
+
+- stage prerequisites are checked server-side
+- mutating stages are serialized per project
+- completed stages are effectively idempotent
+- every successful mutation is persisted
+- pipeline status is queryable through `GET /api/projects/{id}/pipeline`

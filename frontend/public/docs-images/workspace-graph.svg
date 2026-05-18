@@ -1,0 +1,78 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="980" rx="28" fill="#F7F1E7"/>
+  <rect x="38" y="34" width="1524" height="912" rx="24" fill="#FFFDF9" stroke="#E2D7C6" stroke-width="2"/>
+  <rect x="38" y="34" width="1524" height="68" rx="24" fill="#FFFDF9"/>
+  <path d="M38 102H1562" stroke="#E5E4E2" stroke-width="2"/>
+
+  <text x="88" y="76" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Quorum</text>
+
+  <rect x="316" y="49" width="120" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="347" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Workbench</text>
+  <rect x="444" y="49" width="92" height="38" rx="11" fill="#FFFFFF" stroke="#D9D8D6"/>
+  <text x="475" y="73" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Graph</text>
+  <rect x="544" y="49" width="96" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="575" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Agents</text>
+
+  <rect x="66" y="126" width="1120" height="744" rx="18" fill="#FFFFFF" stroke="#E5E4E2" stroke-width="2"/>
+  <rect x="1204" y="126" width="316" height="744" rx="18" fill="#F8F7F4" stroke="#E5E4E2" stroke-width="2"/>
+
+  <rect x="92" y="150" width="210" height="42" rx="12" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
+  <text x="118" y="176" fill="#8D4D24" font-family="Arial, sans-serif" font-size="16" font-weight="700">Search nodes or relation types</text>
+
+  <rect x="318" y="150" width="96" height="42" rx="12" fill="#E8F4EB" stroke="#2F8C56" stroke-width="2"/>
+  <text x="346" y="176" fill="#2F8C56" font-family="Arial, sans-serif" font-size="16" font-weight="700">People</text>
+  <rect x="428" y="150" width="142" height="42" rx="12" fill="#E5EEF8" stroke="#4C7CB3" stroke-width="2"/>
+  <text x="460" y="176" fill="#355F8E" font-family="Arial, sans-serif" font-size="16" font-weight="700">Organizations</text>
+  <rect x="584" y="150" width="114" height="42" rx="12" fill="#FFF4DE" stroke="#C8922E" stroke-width="2"/>
+  <text x="616" y="176" fill="#8B651A" font-family="Arial, sans-serif" font-size="16" font-weight="700">Topics</text>
+
+  <line x1="240" y1="350" x2="444" y2="292" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="444" y1="292" x2="650" y2="344" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="650" y1="344" x2="878" y2="286" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="444" y1="292" x2="510" y2="516" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="510" y1="516" x2="708" y2="600" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="708" y1="600" x2="922" y2="522" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="650" y1="344" x2="708" y2="600" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="240" y1="350" x2="318" y2="590" stroke="#DACAB5" stroke-width="4"/>
+  <line x1="318" y1="590" x2="510" y2="516" stroke="#DACAB5" stroke-width="4"/>
+
+  <circle cx="240" cy="350" r="38" fill="#FFEEE6" stroke="#FF4500" stroke-width="4"/>
+  <circle cx="444" cy="292" r="44" fill="#E8F4EB" stroke="#2F8C56" stroke-width="4"/>
+  <circle cx="650" cy="344" r="42" fill="#E5EEF8" stroke="#4C7CB3" stroke-width="4"/>
+  <circle cx="878" cy="286" r="38" fill="#F3ECFB" stroke="#7D59B6" stroke-width="4"/>
+  <circle cx="318" cy="590" r="36" fill="#F8E8EF" stroke="#BE5C7A" stroke-width="4"/>
+  <circle cx="510" cy="516" r="46" fill="#FFF4DE" stroke="#C8922E" stroke-width="4"/>
+  <circle cx="708" cy="600" r="48" fill="#FBE7DF" stroke="#C76839" stroke-width="4"/>
+  <circle cx="922" cy="522" r="38" fill="#E7F4F2" stroke="#2B7A74" stroke-width="4"/>
+
+  <text x="204" y="356" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Quorum</text>
+  <text x="400" y="298" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Platform</text>
+  <text x="606" y="350" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Architect</text>
+  <text x="836" y="292" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Docs</text>
+  <text x="288" y="596" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Offline</text>
+  <text x="470" y="522" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Activation</text>
+  <text x="666" y="606" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Simulation</text>
+  <text x="891" y="528" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Report</text>
+
+  <text x="1230" y="166" fill="#6A6662" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">NODE DETAILS</text>
+  <text x="1230" y="210" fill="#111111" font-family="Arial, sans-serif" font-size="28" font-weight="700">Senior Platform Architect</text>
+  <text x="1230" y="246" fill="#686562" font-family="Arial, sans-serif" font-size="18">Type: Person</text>
+
+  <rect x="1230" y="278" width="248" height="38" rx="12" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
+  <text x="1260" y="302" fill="#8D4D24" font-family="Arial, sans-serif" font-size="16" font-weight="700">@seniorplatformarch_974</text>
+
+  <rect x="1230" y="340" width="248" height="118" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <text x="1252" y="376" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Key links</text>
+  <text x="1252" y="410" fill="#686562" font-family="Arial, sans-serif" font-size="16">- DOCUMENTS -> Docs</text>
+  <text x="1252" y="438" fill="#686562" font-family="Arial, sans-serif" font-size="16">- PROPOSES -> ChangeProposal</text>
+
+  <rect x="1230" y="482" width="248" height="162" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
+  <text x="1252" y="518" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Persona summary</text>
+  <text x="1252" y="554" fill="#686562" font-family="Arial, sans-serif" font-size="16">Architect focused on</text>
+  <text x="1252" y="580" fill="#686562" font-family="Arial, sans-serif" font-size="16">stage ordering, offline</text>
+  <text x="1252" y="606" fill="#686562" font-family="Arial, sans-serif" font-size="16">safety, and explicit</text>
+  <text x="1252" y="632" fill="#686562" font-family="Arial, sans-serif" font-size="16">activation boundaries.</text>
+
+  <rect x="1230" y="668" width="248" height="54" rx="27" fill="#111111"/>
+  <text x="1291" y="701" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Chat with agent</text>
+</svg>

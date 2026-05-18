@@ -44,6 +44,12 @@ To rebuild after a code change:
 docker-compose up -d --build
 ```
 
+If you’re using the modern Docker CLI, you can also use:
+
+```bash
+docker compose up -d --build
+```
+
 ### Environment file
 
 Your `.env` should contain at minimum:
@@ -149,7 +155,7 @@ After=network.target
 Type=simple
 WorkingDirectory=/opt/quorum
 EnvironmentFile=/opt/quorum/.env
-ExecStart=/opt/quorum/.venv/bin/python -m uvicorn backend.main:app \
+ExecStart=/opt/quorum/.venv/bin/python -m uvicorn quorum_backend.main:app \
   --host 0.0.0.0 --port 8000
 Restart=on-failure
 User=quorum
@@ -205,10 +211,11 @@ curl http://localhost:8000/health
 {
   "status": "healthy",
   "service": "Quorum",
+  "version": "1.0.0",
   "llm_provider_configured": "google",
   "llm_provider_active": "google",
   "llm_provider_ok": true,
-  "simulation_count": 12
+  "project_count": 12
 }
 ```
 
@@ -221,7 +228,7 @@ the local stub. Alert on this.
 
 - **CORS** is enabled for all origins by default — restrict it in
   production by editing the `CORSMiddleware` configuration in
-  `backend/main.py`.
+  `backend/src/quorum_backend/main.py`.
 - **No authentication** is built in. If you expose Quorum to the
   internet, put it behind an auth proxy (Cloudflare Access, oauth2-proxy,
   etc.).

@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Compass, Hash } from 'lucide-react'
-import StageCard from '@/components/pipeline/stage-card'
+import StageCard, { StageActionButton } from '@/components/pipeline/stage-card'
 import type { EventConfig, AgentProfile } from '@/types/pipeline'
 import type { StageStatus } from '@/components/pipeline/stage-card'
 
@@ -11,6 +11,8 @@ interface StageActivationCardProps {
   status: StageStatus
   event: EventConfig | null
   agents?: AgentProfile[]
+  onGenerate?: () => void
+  loading?: boolean
 }
 
 export default function StageActivationCard({
@@ -18,14 +20,23 @@ export default function StageActivationCard({
   status,
   event,
   agents = [],
+  onGenerate,
+  loading = false,
 }: StageActivationCardProps) {
   return (
     <StageCard
       number={number}
       title="Initial Activation Orchestration"
-      endpoint="/api/projects/{id}/simulation/prepare"
-      description="Orchestrate the initial activation sequence based on narrative direction and agent profiles."
+      endpoint="/api/projects/{id}/simulation/activate"
+      description="Generate the narrative direction, hot topics, and starter posts that seed round zero before the live debate begins."
       status={status}
+      action={
+        !event && onGenerate ? (
+          <StageActionButton onClick={onGenerate} disabled={loading}>
+            {loading ? 'Generating activation…' : 'Generate activation plan'}
+          </StageActionButton>
+        ) : undefined
+      }
     >
       {event && (
         <div className="space-y-5">

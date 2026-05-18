@@ -8,6 +8,39 @@ React app with three top-level views (Workbench, Graph, Agents) and a system
 dashboard pinned to the bottom. This guide walks through one full simulation
 end to end.
 
+## Workspace screenshots
+
+These screen references map directly to the current production UI and are
+useful to keep open while reading the stage-by-stage walkthrough.
+
+### Empty project
+
+![Quorum empty workspace screen](/docs-images/workspace-empty.svg)
+
+*The empty state shows the brief form, constraints field, and optional
+reality-seed upload area before the pipeline begins.*
+
+### Workbench
+
+![Quorum workbench screen](/docs-images/workspace-workbench.svg)
+
+*The workbench keeps the live graph on the left, sequential stage cards on the
+right, and the event log across the bottom.*
+
+### Graph view
+
+![Quorum graph screen](/docs-images/workspace-graph.svg)
+
+*The dedicated graph view expands the knowledge graph, exposes filters, and
+lets the operator inspect a node and jump straight into agent chat.*
+
+### Agents view
+
+![Quorum agents screen](/docs-images/workspace-agents.svg)
+
+*The agents view turns generated personas into an inspectable gallery with a
+detail panel and direct chat entry points.*
+
 ## 1. Open the workspace
 
 Navigate to `http://localhost:3000/workspace`. On first visit you'll see the
@@ -47,13 +80,11 @@ The form has four fields:
 - "AI strategy"
 - "Should we do it"
 
-Click **Generate ontology + graph** to create the project and start the
-pipeline. The form collapses and the workbench layout appears.
+Click **Create project**. The form collapses and the workbench layout appears.
 
 ## 3. Watch stages 01 and 02 complete
 
-The ontology and graph build automatically once the project is created.
-You'll see two stage cards on the right populate in sequence:
+Run the first two stages from their cards on the right:
 
 - **Stage 01 — Ontology Generation** shows the generated entity type chips
   (10 types) and relation type chips (6-10 types)
@@ -93,8 +124,7 @@ the graph.
 
 ## 5. Generate simulation config (Stage 04)
 
-Click **Generate simulation config** in the Stage 04 card. Quorum runs four
-sequential LLM calls to produce the full simulation parameters:
+Click **Generate simulation config** in the Stage 04 card. Quorum generates:
 
 - **Time config** — 4 stat boxes (Duration, Round duration, Total rounds,
   Active per hour) plus the four hour-multiplier rows (Peak, Work,
@@ -109,15 +139,16 @@ sequential LLM calls to produce the full simulation parameters:
 - **LLM config reasoning** — the concatenated reasoning text from each
   LLM step
 
-Stage 05 (**Initial Activation Orchestration**) auto-fills from the same
-backend call. It shows:
+## 6. Generate initial activation (Stage 05)
+
+Click **Generate activation plan** in the Stage 05 card. It shows:
 
 - Narrative direction in a brand-tinted card
 - Hot topics as `#hashtag` pills
 - Initial activation sequence as a list of starter posts, each attributed
   to the assigned agent
 
-## 6. Start the simulation (Stage 06)
+## 7. Start the simulation (Stage 06)
 
 Click **Start simulation** in the Stage 06 card. The round-by-round debate
 runs in the background. As messages stream in, you'll see them appear in
@@ -142,7 +173,7 @@ If any agent's turn is blocked by a content filter, you'll see a warning
 in the system dashboard at the bottom of the screen — that agent skips its
 turn cleanly and the simulation continues.
 
-## 7. Generate the report (Stage 07)
+## 8. Generate the report (Stage 07)
 
 Click **Generate report** in the Stage 07 card. The pipeline runs:
 
@@ -158,7 +189,7 @@ When generation completes, the report appears inline:
 - **Expand all** toggle to open every section at once
 - **Download .md** button to save the full report as a Markdown file
 
-## 8. Deep interaction (Stage 08)
+## 9. Deep interaction (Stage 08)
 
 After Stage 06 completes you can chat with any individual agent in the
 post-simulation state. To open the chat panel:
@@ -170,7 +201,7 @@ The chat panel slides in from the right and has its own message thread.
 Each agent responds in character, drawing on its full persona, the
 debate transcript, and the consensus.
 
-## 9. The system dashboard
+## 10. The system dashboard
 
 The black strip at the bottom of the workspace is the live event log. It
 streams every status change from the project's `events` array. Color
@@ -184,7 +215,7 @@ coding:
 The dashboard auto-scrolls to the latest event and shows the project ID
 in the top-right.
 
-## 10. Resetting and starting over
+## 11. Resetting and starting over
 
 Click **New project** in the header to clear the current project and
 return to the form. The project itself is preserved on disk (in

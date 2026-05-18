@@ -1,76 +1,96 @@
 ---
 title: Introduction
-description: Quorum is a self-hosted multi-agent reasoning platform. Upload a document, design a topic-specific ontology, instantiate one AI agent per real-world entity, run a structured debate, and generate a prediction report.
+description: Quorum is a self-hosted multi-agent reasoning system with a production-oriented sequential pipeline, typed project state, and detailed in-app documentation.
 ---
 
-Quorum is a self-hosted multi-agent reasoning platform.
+Quorum turns an open-ended brief into a structured, inspectable multi-agent run.
+You create a project, attach reality-seed documents, step through a strict
+seven-stage pipeline, and finish with a debate transcript, consensus, report,
+and post-run agent chat.
 
-You give it a brief — a strategic decision, a research question, a policy
-draft — and an optional set of source documents. Quorum then runs a
-seven-stage pipeline that designs a topic-specific knowledge graph,
-instantiates one AI agent per real-world entity in that graph, runs them
-through a structured debate, and writes you a prediction report.
+This documentation set is the canonical source of truth for the repository.
+The older root-level markdown docs are no longer the product reference.
 
-The whole stack runs locally with the LLM provider of your choice (Google
-Gemini, Anthropic Claude, or Azure AI Foundry). There is no managed service
-and no hosted dependency you need to sign up for.
+## Flow at a glance
 
-## Why Quorum exists
+The pipeline is intentionally linear. Each stage has one job, one persisted
+output, and one set of prerequisites enforced by the backend.
 
-Most LLM tools collapse multi-stakeholder reasoning into a single voice
-optimising for a single answer. Real decisions need **structured
-disagreement**: a risk officer thinks differently from an opportunity scout;
-a constitutional historian sees what a startup founder misses. Quorum makes
-that disagreement explicit, tracks it across rounds, and surfaces both the
-consensus and the dissents in the final report.
+![Quorum production pipeline flow chart](/docs-images/pipeline-flow.svg)
 
-The same pipeline works across domains without templates or rewrites:
+*Flow chart: project creation and optional uploads feed a strict server-side
+stage sequence from ontology to report.*
 
-- Product strategy and roadmap decisions
-- Engineering architecture trade-offs
-- Hiring and team-structure questions
-- Policy impact analysis
-- Research thesis stress-testing
-- Market entry and investment decisions
+## What Quorum does
 
-You do not pick a domain. You describe the question, and the pipeline adapts.
+Quorum is designed for questions that need explicit disagreement, not a single
+compressed answer. The system:
 
-## How it differs from a single LLM
+1. Builds a project from a brief and optional source documents.
+2. Generates a topic-specific ontology.
+3. Extracts a typed knowledge graph.
+4. Instantiates one agent per speaker-capable entity.
+5. Generates simulation configuration.
+6. Generates an activation plan that seeds the debate.
+7. Runs a structured multi-round simulation.
+8. Produces a report and supports follow-up chat with any agent.
 
-A single LLM playing several "personas" tends to converge on its own bias —
-every persona ends up sounding similar because they all share the same model
-weights and the same conversational context. Quorum addresses this with
-three structural mechanisms:
+The pipeline is intentionally sequential. Each stage validates its
+prerequisites, persists its output, and exposes enough intermediate state to
+debug the run without guessing.
 
-1. **Per-agent system prompts**, each derived from a real entity in the
-   knowledge graph. The agent representing *Wuhan University* gets a
-   different system prompt from *the Student Affairs Office*.
-2. **Stance and bias tracking** across rounds. Each agent enters with a
-   declared stance (`support` / `oppose` / `neutral`) and a stated bias.
-   Disagreement is data, not noise.
-3. **A consensus moderator** that summarises the swarm position and
-   explicitly lists dissenting agents at the end of the run.
+## Workspace reference
 
-## Documentation map
+The production UI is centered on one workspace rather than multiple competing
+surfaces. The workbench keeps the graph, pipeline, and event log visible while
+the project advances one stage at a time.
 
-- **[Quickstart](/docs/quickstart)** — install Quorum and run your first
-  simulation in five minutes
-- **[Concepts](/docs/concepts)** — the data model, the seven pipeline
-  stages, and the architecture at a glance
-- **[Workspace guide](/docs/workspace-guide)** — how to drive the web UI
-  end to end
-- **[API reference](/docs/api-reference)** — every REST endpoint with
-  request and response shapes
-- **[Configuration](/docs/configuration)** — environment variables, LLM
-  providers, persistence, and performance tuning
-- **[Deployment](/docs/deployment)** — running Quorum with Docker Compose
-  or as a managed service
-- **[Troubleshooting](/docs/troubleshooting)** — common errors and how to
-  diagnose them
-- **[Local development](/docs/local-development)** — running the stack
-  from source for contributors
+![Quorum workbench screen reference](/docs-images/workspace-workbench.svg)
 
-## License
+*Workbench reference: live graph on the left, stage cards on the right, and
+the event dashboard pinned at the bottom.*
 
-Quorum is open source under the MIT license. Contributions are welcome on
-GitHub.
+## Product principles
+
+- **One production path**: the repository now centers on the project-based
+  `/api/projects/*` pipeline. The previous legacy simulation surface has been
+  removed.
+- **Typed artifacts over ad hoc prompts**: ontology, graph, agents, config,
+  activation, transcript, consensus, and report are all persisted project
+  artifacts.
+- **Strict stage ordering**: uploads happen before ontology, activation happens
+  before simulation, and report generation happens only after a completed run.
+- **Offline-verifiable**: the local deterministic LLM provider now understands
+  the production pipeline prompts, so the end-to-end path is testable without a
+  vendor API.
+- **Documentation in the app**: the Fumadocs site under `/docs` is the primary
+  documentation surface and ships with the product.
+
+## Reading map
+
+- [Quickstart](/docs/quickstart)
+  Run the stack and complete your first project.
+- [Architecture](/docs/architecture)
+  System boundaries, request flow, persistence, and backend/frontend
+  responsibilities.
+- [Agent Architecture](/docs/agent-architecture)
+  How entities become agents, how activation and debate use them, and how to
+  extend the system safely.
+- [Concepts](/docs/concepts)
+  Core data model and the pipeline state machine.
+- [Pipeline Stages](/docs/pipeline-stages)
+  Detailed stage-by-stage behavior and failure handling.
+- [API Reference](/docs/api-reference)
+  Every production endpoint and its request/response contract.
+- [Production Readiness](/docs/production-readiness)
+  Locking, idempotency, persistence, health checks, and operational guidance.
+- [Testing](/docs/testing)
+  Offline end-to-end verification, backend tests, and frontend build checks.
+- [Configuration](/docs/configuration)
+  Environment variables, providers, and persistence settings.
+- [Deployment](/docs/deployment)
+  Docker Compose and service-level deployment notes.
+- [Troubleshooting](/docs/troubleshooting)
+  Common failures and where to look first.
+- [Local development](/docs/local-development)
+  Contributor workflow and project structure.

@@ -162,7 +162,7 @@ The pickle store grows monotonically — every project ever created stays
 in the store until you delete it. For a production deployment with
 many projects, you'll want to periodically prune old projects or
 migrate to a real database. The persistence layer is isolated to
-`backend/pipeline/router.py` so swapping it is straightforward.
+`backend/src/quorum_backend/pipeline/router.py` so swapping it is straightforward.
 
 ## See also
 

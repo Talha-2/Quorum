@@ -1,7 +1,8 @@
 'use client'
 
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   RotateCcw,
   Sparkles,
@@ -49,6 +50,7 @@ const STATE_LABEL: Record<ProjectState, string> = {
   graph_completed: 'Graph ready',
   env_ready: 'Env ready',
   config_ready: 'Config ready',
+  activation_ready: 'Activation ready',
   simulating: 'Simulating',
   sim_completed: 'Simulation done',
   report_ready: 'Report ready',
@@ -87,17 +89,23 @@ function mapPipelineGraphD3(project: Project | null): {
 // ============ Component ============
 
 export default function QuorumPipeline() {
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [project, setProject] = useState<Project | null>(null)
   const [briefDraft, setBriefDraft] = useState('')
   const [constraintsDraft, setConstraintsDraft] = useState('')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [view, setView] = useState<ViewMode>('pipeline')
   const [error, setError] = useState<string | null>(null)
-  const [stage1Loading, setStage1Loading] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
+  const [ontologyLoading, setOntologyLoading] = useState(false)
+  const [graphLoading, setGraphLoading] = useState(false)
   const [stage2Loading, setStage2Loading] = useState(false)
   const [stage3Loading, setStage3Loading] = useState(false)
+  const [activationLoading, setActivationLoading] = useState(false)
   const [stage4Loading, setStage4Loading] = useState(false)
   const [stage5Loading, setStage5Loading] = useState(false)
+  const [projectLoading, setProjectLoading] = useState(false)
   const [chatAgent, setChatAgent] = useState<AgentProfile | null>(null)
   const [detailAgent, setDetailAgent] = useState<AgentProfile | null>(null)
 
@@ -111,13 +119,65 @@ export default function QuorumPipeline() {
 
   const status = project?.state ?? 'created'
   const isInitialized = project !== null
+  const anyStageLoading =
+    createLoading ||
+    ontologyLoading ||
+    graphLoading ||
+    stage2Loading ||
+    stage3Loading ||
+    activationLoading ||
+    stage4Loading ||
+    stage5Loading ||
+    projectLoading
+
+  useEffect(() => {
+    const requestedView = searchParams.get('view')
+    if (
+      requestedView === 'pipeline' ||
+      requestedView === 'graph' ||
+      requestedView === 'agents'
+    ) {
+      setView(requestedView)
+    }
+  }, [searchParams])
+
+  useEffect(() => {
+    const projectId = searchParams.get('project')
+    if (!projectId || project?.id === projectId) return
+
+    let cancelled = false
+    setError(null)
+    setProjectLoading(true)
+
+    pipelineApi
+      .getProject(projectId)
+      .then((proj) => {
+        if (!cancelled) {
+          setProject(proj)
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(getErrorMessage(err))
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setProjectLoading(false)
+        }
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [project?.id, searchParams])
 
   // ============ Stage actions ============
 
-  const handleCreateAndStart = async () => {
+  const handleCreateProject = async () => {
     if (!briefDraft.trim()) return
     setError(null)
-    setStage1Loading(true)
+    setCreateLoading(true)
     try {
       // 1. Create project
       let proj = await pipelineApi.createProject({
@@ -139,17 +199,38 @@ export default function QuorumPipeline() {
         }
       }
 
-      // 3. Stage 1a: ontology
-      proj = await pipelineApi.generateOntology(proj.id)
-      setProject(proj)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setCreateLoading(false)
+    }
+  }
 
-      // 4. Stage 1b: graph
-      proj = await pipelineApi.buildGraph(proj.id)
+  const handleGenerateOntology = async () => {
+    if (!project) return
+    setError(null)
+    setOntologyLoading(true)
+    try {
+      const proj = await pipelineApi.generateOntology(project.id)
       setProject(proj)
     } catch (err) {
       setError(getErrorMessage(err))
     } finally {
-      setStage1Loading(false)
+      setOntologyLoading(false)
+    }
+  }
+
+  const handleBuildGraph = async () => {
+    if (!project) return
+    setError(null)
+    setGraphLoading(true)
+    try {
+      const proj = await pipelineApi.buildGraph(project.id)
+      setProject(proj)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setGraphLoading(false)
     }
   }
 
@@ -195,6 +276,20 @@ export default function QuorumPipeline() {
     }
   }
 
+  const handleGenerateActivation = async () => {
+    if (!project) return
+    setError(null)
+    setActivationLoading(true)
+    try {
+      const proj = await pipelineApi.activateSimulation(project.id)
+      setProject(proj)
+    } catch (err) {
+      setError(getErrorMessage(err))
+    } finally {
+      setActivationLoading(false)
+    }
+  }
+
   const handleReset = () => {
     setProject(null)
     setBriefDraft('')
@@ -205,6 +300,7 @@ export default function QuorumPipeline() {
     setDetailAgent(null)
     setSelectedNodeId(null)
     setView('pipeline')
+    router.replace('/workspace')
   }
 
   // d3 canvas → click handler. If the clicked node maps to an agent, open
@@ -219,7 +315,7 @@ export default function QuorumPipeline() {
     }
   }
 
-  // Stage 03 — Generate Config (calls /simulation/prepare)
+  // Stage 04 — Generate Config (calls /simulation/prepare)
   const handlePrepareSimulation = async () => {
     if (!project) return
     setError(null)
@@ -237,10 +333,10 @@ export default function QuorumPipeline() {
   // Stage status computations
   const stage1Status = useMemo(() => {
     if (!project) return 'pending'
-    if (stage1Loading) return 'processing'
+    if (ontologyLoading) return 'processing'
     if (project.ontology) return 'complete'
     return 'pending'
-  }, [project, stage1Loading]) as
+  }, [project, ontologyLoading]) as
     | 'pending'
     | 'processing'
     | 'complete'
@@ -248,10 +344,10 @@ export default function QuorumPipeline() {
 
   const stage1bStatus = useMemo(() => {
     if (!project) return 'pending'
-    if (stage1Loading) return 'processing'
+    if (graphLoading || project.state === 'graph_building') return 'processing'
     if (project.graph_stats) return 'complete'
     return 'pending'
-  }, [project, stage1Loading]) as
+  }, [project, graphLoading]) as
     | 'pending'
     | 'processing'
     | 'complete'
@@ -268,7 +364,7 @@ export default function QuorumPipeline() {
     | 'complete'
     | 'failed'
 
-  // Stage 04 — Generate Config (calls /simulation/prepare)
+  // Stage 04 — Generate Config
   const stage3Status = useMemo(() => {
     if (!project) return 'pending'
     if (stage3Loading) return 'processing'
@@ -280,14 +376,13 @@ export default function QuorumPipeline() {
     | 'complete'
     | 'failed'
 
-  // Stage 05 — Initial Activation (just renders the EventConfig from the
-  // simulation_parameters; same backend call generates both)
+  // Stage 05 — Initial Activation
   const stage4ActivationStatus = useMemo(() => {
     if (!project) return 'pending'
-    if (stage3Loading) return 'processing'
-    if (project.simulation_parameters?.event_config) return 'complete'
+    if (activationLoading) return 'processing'
+    if (project.activation) return 'complete'
     return 'pending'
-  }, [project, stage3Loading]) as
+  }, [project, activationLoading]) as
     | 'pending'
     | 'processing'
     | 'complete'
@@ -387,7 +482,11 @@ export default function QuorumPipeline() {
             Docs
           </a>
           {isInitialized && (
-            <button onClick={handleReset} className="btn btn-primary btn-sm">
+            <button
+              onClick={handleReset}
+              disabled={anyStageLoading}
+              className="btn btn-primary btn-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               <RotateCcw className="h-3.5 w-3.5" />
               New project
             </button>
@@ -424,6 +523,15 @@ export default function QuorumPipeline() {
                   </p>
                 </div>
                 <div className="p-8 space-y-6">
+                  {projectLoading ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-center">
+                      <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
+                      <p className="mt-4 text-sm text-[var(--muted)]">
+                        Loading existing project…
+                      </p>
+                    </div>
+                  ) : (
+                    <>
                   <div>
                     <label className="label-mono mb-2 block">Brief</label>
                     <textarea
@@ -449,22 +557,22 @@ export default function QuorumPipeline() {
                   <FileUploadField
                     files={pendingFiles}
                     onFilesChange={setPendingFiles}
-                    disabled={stage1Loading}
+                    disabled={createLoading}
                   />
                   <button
-                    onClick={handleCreateAndStart}
-                    disabled={stage1Loading || !briefDraft.trim()}
+                    onClick={handleCreateProject}
+                    disabled={createLoading || !briefDraft.trim()}
                     className="btn btn-primary btn-lg w-full disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {stage1Loading ? (
+                    {createLoading ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin" />
-                        Building graph…
+                        Creating project…
                       </>
                     ) : (
                       <>
                         <Sparkles className="h-4 w-4" />
-                        Generate ontology + graph
+                        Create project
                       </>
                     )}
                   </button>
@@ -472,6 +580,8 @@ export default function QuorumPipeline() {
                     Backend: <span className="font-mono">localhost:8000</span> ·
                     LLM: <span className="font-mono text-[var(--brand)]">google/gemini</span>
                   </p>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -508,6 +618,24 @@ export default function QuorumPipeline() {
                 endpoint="/api/projects/{id}/graph/ontology/generate"
                 description="LLM analyzes the brief and automatically generates a topic-specific ontology of entity types and relationship types."
                 status={stage1Status}
+                action={
+                  project &&
+                  !project.ontology && (
+                    <StageActionButton
+                      onClick={handleGenerateOntology}
+                      disabled={ontologyLoading}
+                    >
+                      {ontologyLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Generating ontology…
+                        </>
+                      ) : (
+                        'Generate ontology'
+                      )}
+                    </StageActionButton>
+                  )
+                }
               >
                 {project?.ontology && (
                   <div className="space-y-4">
@@ -530,6 +658,24 @@ export default function QuorumPipeline() {
                 endpoint="/api/projects/{id}/graph/build"
                 description="Based on the generated ontology, extracts every concrete entity and every relationship from the brief into a typed knowledge graph."
                 status={stage1bStatus}
+                action={
+                  project?.ontology &&
+                  !project.graph_stats && (
+                    <StageActionButton
+                      onClick={handleBuildGraph}
+                      disabled={graphLoading}
+                    >
+                      {graphLoading ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Building graph…
+                        </>
+                      ) : (
+                        'Build knowledge graph'
+                      )}
+                    </StageActionButton>
+                  )
+                }
               >
                 {project?.graph_stats && (
                   <div className="grid grid-cols-3 gap-4 py-2">
@@ -621,7 +767,7 @@ export default function QuorumPipeline() {
                 number="04"
                 status={stage3Status}
                 params={project?.simulation_parameters ?? null}
-                onGenerate={handlePrepareSimulation}
+                onGenerate={project?.agent_count ? handlePrepareSimulation : undefined}
                 loading={stage3Loading}
               />
 
@@ -629,8 +775,10 @@ export default function QuorumPipeline() {
               <StageActivationCard
                 number="05"
                 status={stage4ActivationStatus}
-                event={project?.simulation_parameters?.event_config ?? null}
+                event={project?.activation ?? null}
                 agents={project?.agents}
+                onGenerate={project?.simulation_parameters ? handleGenerateActivation : undefined}
+                loading={activationLoading}
               />
 
               {/* Stage 06 — Simulation */}
@@ -642,7 +790,7 @@ export default function QuorumPipeline() {
                 status={stage4Status}
                 action={
                   project &&
-                  project.agent_count > 0 &&
+                  project.activation &&
                   !project.consensus && (
                     <StageActionButton
                       onClick={handleStartSimulation}

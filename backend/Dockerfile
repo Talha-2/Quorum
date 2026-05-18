@@ -1,8 +1,8 @@
 # Quorum backend — FastAPI + the seven-stage reasoning pipeline
 #
 # Build context: the repository root (NOT the backend/ directory).
-# This is required so the `backend` Python package can be imported as a
-# top-level module by uvicorn.
+# The backend is installed from `backend/` using a `src/` layout so imports
+# are stable regardless of container working directory.
 #
 #   docker build -f backend/Dockerfile -t quorum-backend .
 #
@@ -17,13 +17,12 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies first so they cache between code changes
-COPY backend/requirements.txt /app/backend/requirements.txt
+# Install backend (editable) so imports are stable
+COPY backend/pyproject.toml /app/backend/pyproject.toml
+COPY backend/README.md /app/backend/README.md
+COPY backend/src /app/backend/src
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r /app/backend/requirements.txt
-
-# Copy the backend package — preserves the `backend.<module>` import path
-COPY backend /app/backend
+    && pip install --no-cache-dir -e /app/backend
 
 # Persistent project store directory — mount a volume here in production
 RUN mkdir -p /app/data
@@ -36,4 +35,4 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
     CMD curl -fsS http://localhost:8000/health || exit 1
 
-CMD ["python", "-m", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "quorum_backend.main:app", "--host", "0.0.0.0", "--port", "8000"]

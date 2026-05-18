@@ -568,10 +568,13 @@ curl -X POST localhost:8000/api/projects/proj_X/graph/build
 curl -X POST localhost:8000/api/projects/proj_X/env/setup
 curl -X POST localhost:8000/api/projects/proj_X/simulation/prepare
 
-# 5. Run the debate
+# 5. Generate activation
+curl -X POST localhost:8000/api/projects/proj_X/simulation/activate
+
+# 6. Run the debate
 curl -X POST localhost:8000/api/projects/proj_X/simulation/start
 
-# 6. Generate the prediction report
+# 7. Generate the prediction report
 curl -X POST localhost:8000/api/projects/proj_X/report/generate
 → { "report": { "title": "...", "sections": [...], "markdown": "..." } }`}
               </pre>

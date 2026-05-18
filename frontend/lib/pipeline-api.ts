@@ -66,8 +66,19 @@ export const pipelineApi = {
     return apiClient.post<Project>(`/api/projects/${projectId}/simulation/prepare`, {})
   },
 
+  activateSimulation(projectId: string) {
+    return apiClient.post<Project>(`/api/projects/${projectId}/simulation/activate`, {})
+  },
+
   startSimulation(projectId: string, rounds = 3, agentsPerRound = 4) {
     return apiClient.post<Project>(`/api/projects/${projectId}/simulation/start`, {
+      rounds,
+      agents_per_round: agentsPerRound,
+    })
+  },
+
+  runNextStage(projectId: string, rounds = 3, agentsPerRound = 4) {
+    return apiClient.post<Project>(`/api/projects/${projectId}/pipeline/run-next`, {
       rounds,
       agents_per_round: agentsPerRound,
     })

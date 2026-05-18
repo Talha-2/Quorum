@@ -2,14 +2,25 @@
 
 A self-hosted multi-agent reasoning platform.
 
-Upload a document, design a topic-specific knowledge graph, instantiate one
-AI agent per real-world entity, run them through a structured debate, and
-generate a prediction report — all with the LLM provider of your choice.
+Quorum turns a brief and optional source documents into a structured,
+inspectable multi-agent run:
+
+1. create a project
+2. upload reality-seed documents
+3. generate an ontology
+4. build a knowledge graph
+5. instantiate agents from graph entities
+6. generate simulation config
+7. generate an activation plan
+8. run a debate
+9. generate a markdown report
+
+The stack is provider-agnostic and supports Google Gemini, Anthropic Claude,
+Azure AI Foundry, and a local deterministic provider for offline testing.
 
 ## Quick start
 
-You need Python 3.11+, Node.js 20+, and an LLM API key. The free Google
-Gemini tier works fine for development.
+You need Python 3.11+ and Node.js 20+.
 
 ```bash
 # 1. Clone
@@ -18,110 +29,100 @@ cd Quorum
 
 # 2. Configure
 cp .env.example .env.local
-# Edit .env.local — set LLM_PROVIDER and the API key for your chosen provider
+# Edit .env.local and choose an LLM provider
 
-# 3. Backend
-cd backend
-python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-cd ..
-python -m uvicorn backend.main:app --reload --port 8000
+# 3. Backend (local dev)
+python -m venv backend/.venv
+# Windows
+backend\.venv\Scripts\activate
+# macOS / Linux
+# source backend/.venv/bin/activate
+pip install -e "backend[dev]"
+python -m uvicorn quorum_backend.main:app --reload --port 8000
 
-# 4. Frontend (in a second terminal)
+# 4. Frontend
 cd frontend
 npm install
 npm run dev
-
-# 5. Open
-# http://localhost:3000             ← landing
-# http://localhost:3000/workspace   ← live workspace
-# http://localhost:3000/docs        ← documentation
 ```
 
-Drag a PDF onto the workspace, type your brief, click **Generate ontology +
-graph**, and walk through the seven stages.
+Open:
 
-## Pipeline
+- `http://localhost:3000`
+- `http://localhost:3000/workspace`
+- `http://localhost:3000/docs`
 
+## Production pipeline
+
+```text
+00  Create Project / Upload     -> brief + optional source documents
+01  Ontology Generation         -> topic-specific entity and edge schema
+02  Graph Build                 -> typed graph from the brief and source docs
+03  Environment Setup           -> one agent per speaker-capable entity
+04  Simulation Config           -> time, activity, and platform configuration
+05  Initial Activation          -> narrative direction, hot topics, starter posts
+06  Run Simulation              -> round-by-round debate + consensus
+07  Generate Report             -> markdown report
+08  Agent Chat                  -> post-run follow-up with one agent
 ```
-01  Ontology Generation       → topic-specific entity + edge type schema
-02  GraphRAG Build            → typed knowledge graph from your brief + docs
-03  Environment Setup         → one LLM-designed agent per entity
-04  Generate Config           → time + per-agent activity + platform configs
-05  Initial Activation        → narrative + hot topics + starter posts
-06  Run Simulation            → round-by-round debate with consensus
-07  Generate Report           → multi-section markdown prediction report
-```
 
-There's also a Stage 0 (document upload) and a Stage 8 (chat with any
-individual agent post-simulation).
+The backend enforces stage ordering and serializes mutations per project so the
+pipeline runs one stage at a time.
 
 ## Architecture
 
+- `backend/src/quorum_backend/main.py`: application entrypoint and health endpoint
+- `backend/src/quorum_backend/pipeline/router.py`: project store, stage
+  orchestration, locking, and persistence
+- `backend/src/quorum_backend/pipeline/*`: per-stage services
+- `backend/src/quorum_backend/llm.py`: provider abstraction and local
+  deterministic provider
+- `frontend/components/workspace/quorum-pipeline.tsx`: active workspace UI
+- `frontend/content/docs/*`: canonical Fumadocs documentation
+
+The previous legacy simulation branch has been removed. The repository now has
+one production path.
+
+## Verification
+
+Backend end-to-end tests:
+
+```bash
+backend\.venv\Scripts\python -m pytest backend\tests -q
 ```
-┌─────────────────────────────────────────────┐
-│  Frontend (Next.js 14 + React + d3-force)   │
-│  ─ landing  /  workspace  /  docs           │
-│  ─ live graph + debate stream + dashboard   │
-└──────────────────┬──────────────────────────┘
-                   │ REST (JSON + multipart)
-┌──────────────────▼──────────────────────────┐
-│  Backend (FastAPI + Python 3.11)            │
-│  ─ pipeline.router    7-stage endpoints     │
-│  ─ pipeline.models    typed dataclasses     │
-│  ─ pipeline.*         per-stage services    │
-│  ─ llm.py             provider abstraction  │
-└──────────────────┬──────────────────────────┘
-                   │
-   ┌───────────────┼────────────────┐
-   ▼               ▼                ▼
- Google         Azure AI        Anthropic
- Gemini         Foundry         Claude
+
+Frontend production build:
+
+```bash
+cd frontend
+npm run build
 ```
-
-No required external dependencies beyond your chosen LLM provider. Project
-state is persisted to a local pickle file so projects survive backend
-restarts.
-
-## What's in the box
-
-- **Workspace** — three-view UI (Workbench / Graph / Agents) with the
-  seven-stage pipeline, force-directed knowledge graph, agent gallery,
-  and live system dashboard
-- **Backend** — FastAPI service exposing the full pipeline as a typed
-  REST API
-- **Document upload** — PDF, Markdown, and plain text reality seeds
-- **LLM-agnostic** — Google Gemini (free), Anthropic Claude (paid), or
-  Azure AI Foundry (Kimi K2.5 and others)
-- **On-disk persistence** — projects survive backend restarts
-- **Prediction reports** — multi-section Markdown reports with
-  agent-quoted blockquotes, downloadable as `.md`
-
-## Documentation
-
-Full docs live inside the frontend at `/docs` and source MDX is in
-[frontend/content/docs/](frontend/content/docs/).
-
-- **Quickstart** — install and run your first simulation in five minutes
-- **Concepts** — the data model and architecture
-- **Pipeline stages** — detailed reference for each stage
-- **Workspace guide** — UI walkthrough
-- **API reference** — every endpoint with JSON schemas
-- **Configuration** — env vars, LLM providers, persistence
-- **Deployment** — Docker Compose, reverse proxy, systemd
-- **Troubleshooting** — common errors and fixes
 
 ## Docker Compose
 
 ```bash
 cp .env.example .env
-# Edit .env with your LLM credentials
-docker-compose up -d
+docker compose up -d --build
 ```
 
-The stack runs the backend on port 8000 and the frontend on port 3000,
-with project state persisted to a named volume.
+The compose stack serves the backend on port `8000` and the frontend on port
+`3000`.
+
+## Documentation
+
+The full documentation site ships in the app at `/docs`.
+
+Key pages:
+
+- `Introduction`
+- `Architecture`
+- `Agent Architecture`
+- `Concepts`
+- `Pipeline stages`
+- `API reference`
+- `Production readiness`
+- `Testing`
 
 ## License
 
-MIT.
+MIT

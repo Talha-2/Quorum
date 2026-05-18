@@ -1,0 +1,52 @@
+<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1600" height="980" rx="28" fill="#F7F1E7"/>
+  <rect x="38" y="34" width="1524" height="912" rx="24" fill="#FFFDF9" stroke="#E2D7C6" stroke-width="2"/>
+  <rect x="38" y="34" width="1524" height="68" rx="24" fill="#FFFDF9"/>
+  <path d="M38 102H1562" stroke="#E5E4E2" stroke-width="2"/>
+
+  <circle cx="82" cy="68" r="8" fill="#FFB59F"/>
+  <circle cx="110" cy="68" r="8" fill="#FFD6A3"/>
+  <circle cx="138" cy="68" r="8" fill="#C7E6B9"/>
+
+  <text x="188" y="76" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Quorum</text>
+
+  <rect x="346" y="49" width="120" height="38" rx="11" fill="#FFFFFF" stroke="#D9D8D6"/>
+  <text x="377" y="73" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Workbench</text>
+  <rect x="474" y="49" width="92" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="505" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Graph</text>
+  <rect x="574" y="49" width="96" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
+  <text x="605" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Agents</text>
+
+  <rect x="1254" y="46" width="92" height="42" rx="21" fill="#FFFFFF" stroke="#D9D8D6"/>
+  <text x="1288" y="72" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Docs</text>
+  <rect x="1360" y="46" width="146" height="42" rx="21" fill="#111111"/>
+  <text x="1404" y="72" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="700">New project</text>
+
+  <rect x="282" y="170" width="1036" height="646" rx="22" fill="#FFFFFF" stroke="#E5E4E2" stroke-width="2"/>
+  <rect x="282" y="170" width="1036" height="138" rx="22" fill="#F8F7F4"/>
+  <path d="M282 308H1318" stroke="#E5E4E2" stroke-width="2"/>
+
+  <circle cx="336" cy="220" r="10" fill="#FF4500" fill-opacity="0.14"/>
+  <path d="M332 220H340" stroke="#FF4500" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M336 216V224" stroke="#FF4500" stroke-width="2.4" stroke-linecap="round"/>
+  <text x="360" y="224" fill="#8D4D24" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5">NEW PROJECT</text>
+  <text x="332" y="266" fill="#111111" font-family="Arial, sans-serif" font-size="42" font-weight="700">Spin up a swarm</text>
+  <text x="332" y="306" fill="#686562" font-family="Arial, sans-serif" font-size="22">Describe the topic, then step through the production pipeline one stage at a time.</text>
+
+  <text x="332" y="372" fill="#686562" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.3">BRIEF</text>
+  <rect x="332" y="392" width="936" height="142" rx="16" fill="#FFFFFF" stroke="#C6C6C6" stroke-width="2"/>
+  <text x="362" y="442" fill="#A4A09B" font-family="Arial, sans-serif" font-size="22">What should the swarm debate?</text>
+  <text x="362" y="478" fill="#A4A09B" font-family="Arial, sans-serif" font-size="22">Example: Should the team ship the refactor next sprint?</text>
+
+  <text x="332" y="586" fill="#686562" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.3">CONSTRAINTS</text>
+  <rect x="332" y="606" width="936" height="92" rx="16" fill="#FFFFFF" stroke="#C6C6C6" stroke-width="2"/>
+  <text x="362" y="662" fill="#A4A09B" font-family="Arial, sans-serif" font-size="22">One per line</text>
+
+  <text x="332" y="748" fill="#686562" font-family="Arial, sans-serif" font-size="15" font-weight="700" letter-spacing="1.3">REALITY SEEDS</text>
+  <rect x="332" y="768" width="936" height="128" rx="18" fill="#FFF8F6" stroke="#FF4500" stroke-width="2" stroke-dasharray="10 8"/>
+  <text x="632" y="828" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Drop PDF, Markdown, or text files here</text>
+  <text x="714" y="864" fill="#686562" font-family="Arial, sans-serif" font-size="18">Optional grounding documents</text>
+
+  <rect x="978" y="910" width="290" height="56" rx="28" fill="#111111"/>
+  <text x="1061" y="945" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="20" font-weight="700">Create project</text>
+</svg>
