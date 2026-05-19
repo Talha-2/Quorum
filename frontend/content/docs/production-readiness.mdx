@@ -57,15 +57,15 @@ invalidate the ontology, graph, agents, config, activation, and transcript.
 
 ## Persistence
 
-Every successful mutation persists the in-memory store to disk. The store is
-currently a pickle file because the product is optimized for:
+Every successful mutation is written through to a SQL database. Projects are
+held in an in-memory cache for fast reads and persisted as JSON documents:
 
-- local development
-- single-host deployment
-- easy restart recovery
+- **PostgreSQL** in production (the `docker compose` stack provisions it).
+- **SQLite** as a zero-config fallback when `DATABASE_URL` is unset.
 
-The router isolates persistence concerns so a future database-backed
-implementation can replace the store without rewriting the stage services.
+The schema is owned by Alembic migrations, applied automatically on startup.
+Persistence is isolated to `pipeline/db.py`, so the storage backend can
+change without touching the stage services.
 
 ## Health checks
 

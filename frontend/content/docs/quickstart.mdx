@@ -131,6 +131,6 @@ pipeline programmatically without the web UI, see the
 | `service: "Quorum"` but agents return generic stub text | LLM provider misconfigured — fell back to local stub | Check `/health` for `llm_provider_active`. Install the provider package and verify API key |
 | `429 Quota exceeded` on first call | Free-tier LLM rate limit hit | Wait or switch to a different provider |
 | `400 content_filter` on a topic | Provider's safety filter rejected the prompt | Try rephrasing the brief; affected agents skip their turn cleanly |
-| `404 Not Found` on `/report/generate` after restart | Project was created in a previous backend lifetime | Click **New project** to start fresh — projects now persist via a pickle store, so this only affects pre-persistence projects |
+| `404 Not Found` on `/report/generate` after restart | Project was created in a previous backend lifetime | Click **New project** to start fresh — projects now persist in the database, so this only affects pre-persistence projects |
 
 For more, see [Troubleshooting](/docs/troubleshooting).

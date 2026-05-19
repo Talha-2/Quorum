@@ -22,7 +22,6 @@ def _make_test_dir() -> Path:
 
 
 def _reset_state(test_dir: Path):
-    pipeline_router._PROJECT_STORE_PATH = test_dir / "projects.pkl"
     pipeline_router.clear_project_store_for_tests()
     llm._llm_provider = None
 

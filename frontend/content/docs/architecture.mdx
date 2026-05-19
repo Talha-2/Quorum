@@ -49,10 +49,10 @@ Every operator action follows the same production path:
 7. The workspace re-renders all views from that returned state. The same
    project can also be re-fetched later through `GET /api/projects/{id}`.
 
-The backend persists the entire in-memory project store to a local pickle file.
-That is intentionally simple: it makes local development and single-node
-deployment practical without requiring Postgres before the product model is
-stable.
+The backend keeps projects in an in-memory cache and writes each mutation
+through to a SQL database — PostgreSQL in production, or a local SQLite file
+when `DATABASE_URL` is unset. Each project is one row with its full state in
+a JSON column; the schema is managed by Alembic migrations.
 
 ## Backend architecture
 

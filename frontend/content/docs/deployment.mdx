@@ -65,19 +65,25 @@ variables.
 
 ### Persistence inside Docker
 
-Project state is persisted to a pickle file inside the backend
-container. To survive container restarts, mount a volume:
+Project state is persisted in PostgreSQL. The `docker compose` stack
+includes a `postgres` service with its data on the `quorum-db` volume, so
+projects survive restarts out of the box:
 
 ```yaml
 services:
-  backend:
+  postgres:
+    image: postgres:16-alpine
     volumes:
-      - quorum-data:/app/data
+      - quorum-db:/var/lib/postgresql/data
+  backend:
     environment:
-      QUORUM_PROJECT_STORE_PATH: /app/data/projects.pkl
+      DATABASE_URL: postgresql+psycopg2://quorum:quorum@postgres:5432/quorum
 volumes:
-  quorum-data:
+  quorum-db:
 ```
+
+A standalone backend container with no `DATABASE_URL` to Postgres falls
+back to a SQLite file under `/app/data` — mount a volume there to keep it.
 
 This is wired up in the bundled `docker-compose.yml` by default.
 
@@ -232,9 +238,9 @@ the local stub. Alert on this.
 - **No authentication** is built in. If you expose Quorum to the
   internet, put it behind an auth proxy (Cloudflare Access, oauth2-proxy,
   etc.).
-- **Pickle persistence** is safe because the backend only ever
-  loads files it wrote itself. If you manage `QUORUM_PROJECT_STORE_PATH`
-  carefully, this remains safe.
+- **Database** — projects are stored as JSON documents in SQL, not as
+  pickled Python objects, so loading the store never executes code.
+  Secure `DATABASE_URL` like any other database credential.
 - **Uploaded documents** are stored only as extracted text in the
   project state — the original files are never written to disk.
 

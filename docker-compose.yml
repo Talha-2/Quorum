@@ -1,12 +1,33 @@
 # Quorum — local production-like stack
 #
-# Two services: a FastAPI backend and a Next.js frontend. No external
-# database — projects are persisted to a pickle file inside the backend
-# container, mounted on the `quorum-data` volume so they survive restarts.
+# Three services: a FastAPI backend, a Next.js frontend, and PostgreSQL.
+# Projects are persisted in Postgres on the `quorum-db` volume so they
+# survive restarts.
 #
 # Configure your LLM provider in `.env` (see .env.example).
 
 services:
+  # ============================================
+  # PostgreSQL — the project store
+  # ============================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: quorum-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-quorum}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-quorum}
+      POSTGRES_DB: ${POSTGRES_DB:-quorum}
+    volumes:
+      - quorum-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-quorum}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - quorum
+
   # ============================================
   # Backend — FastAPI + the seven-stage pipeline
   # ============================================
@@ -39,13 +60,13 @@ services:
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 8000
 
-      # Persistent project store inside the mounted volume
-      QUORUM_PROJECT_STORE_PATH: /app/data/projects.pkl
+      # Project store — PostgreSQL (see the postgres service above)
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-quorum}:${POSTGRES_PASSWORD:-quorum}@postgres:5432/${POSTGRES_DB:-quorum}
     ports:
       - "8000:8000"
-    volumes:
-      # Persist projects across container restarts
-      - quorum-data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
       interval: 30s
@@ -76,7 +97,7 @@ services:
       - quorum
 
 volumes:
-  quorum-data:
+  quorum-db:
     driver: local
 
 networks:

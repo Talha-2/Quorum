@@ -37,20 +37,18 @@ class Settings(BaseSettings):
     server_host: str = "0.0.0.0"
     server_port: int = 8000
 
-    # Persistence
-    project_store_path: Path = Field(
-        default_factory=lambda: (BACKEND_DIR / ".quorum_projects.pkl"),
-        validation_alias="QUORUM_PROJECT_STORE_PATH",
-    )
+    # Persistence — SQL database.
+    # Set DATABASE_URL to a PostgreSQL DSN in production, e.g.
+    #   postgresql+psycopg2://user:pass@host:5432/quorum
+    # When empty, the backend falls back to a local SQLite file so the app
+    # runs with zero configuration for development and tests.
+    database_url: str = Field(default="", validation_alias="DATABASE_URL")
 
     @property
-    def database_url(self) -> str:
-        # Reserved for future persistent storage; keep for backward compatibility.
-        postgres_host: str = getattr(self, "postgres_host", "postgres")
-        postgres_user: str = getattr(self, "postgres_user", "genericswarm")
-        postgres_password: str = getattr(self, "postgres_password", "genericswarm")
-        postgres_db: str = getattr(self, "postgres_db", "genericswarm")
-        return f"postgresql://{postgres_user}:{postgres_password}@{postgres_host}:5432/{postgres_db}"
+    def resolved_database_url(self) -> str:
+        if self.database_url.strip():
+            return self.database_url.strip()
+        return f"sqlite:///{(BACKEND_DIR / '.quorum_projects.db').as_posix()}"
 
     @field_validator("debug", mode="before")
     @classmethod

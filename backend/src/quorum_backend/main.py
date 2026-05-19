@@ -13,7 +13,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from quorum_backend.config import settings
 from quorum_backend.llm import get_llm, init_llm
-from quorum_backend.pipeline.router import get_project_store_summary, router as pipeline_router
+from quorum_backend.pipeline import db
+from quorum_backend.pipeline.router import (
+    get_project_store_summary,
+    load_projects_into_cache,
+    router as pipeline_router,
+)
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,6 +27,9 @@ logger = logging.getLogger(__name__)
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     init_llm()
+    # Bring the database schema to head, then warm the in-memory cache.
+    db.init_db()
+    load_projects_into_cache()
     yield
 
 
@@ -55,6 +63,6 @@ async def health():
         "llm_provider_active": getattr(llm, "name", "unknown"),
         "llm_provider_ok": getattr(llm, "name", "unknown") == settings.llm_provider,
         "project_count": store["project_count"],
-        "project_store_path": store["store_path"],
+        "project_store": store["store_path"],
     }
 

@@ -24,9 +24,11 @@ COPY backend/src /app/backend/src
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir -e /app/backend
 
-# Persistent project store directory — mount a volume here in production
+# Default project store: a SQLite file under /app/data. docker-compose
+# overrides DATABASE_URL to PostgreSQL; a standalone container persists
+# here (mount a volume on /app/data to keep it across restarts).
 RUN mkdir -p /app/data
-ENV QUORUM_PROJECT_STORE_PATH=/app/data/projects.pkl
+ENV DATABASE_URL=sqlite:////app/data/quorum.db
 ENV PYTHONUNBUFFERED=1
 
 EXPOSE 8000

@@ -7,9 +7,7 @@ from __future__ import annotations
 import asyncio
 import copy
 import logging
-import pickle
 from dataclasses import asdict
-from pathlib import Path
 from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, File, HTTPException, UploadFile
@@ -17,6 +15,7 @@ from pydantic import BaseModel
 
 from quorum_backend.config import settings
 from quorum_backend.domains import get_domain, is_valid_domain, list_domains
+from quorum_backend.pipeline import db
 from quorum_backend.pipeline.env_setup import build_roster_agents, generate_agents_for_graph
 from quorum_backend.pipeline.file_parser import (
     SUPPORTED_EXTENSIONS,
@@ -40,62 +39,37 @@ _projects_lock: asyncio.Lock = asyncio.Lock()
 _project_stage_locks: Dict[str, asyncio.Lock] = {}
 _projects: Dict[str, Project] = {}
 
-# Overridable in tests.
-_PROJECT_STORE_PATH: Path = Path(settings.project_store_path)
 
-
-def _save_projects_to_disk() -> None:
+def _save_project(project: Project) -> None:
+    """Write a single project through to the database."""
     try:
-        _PROJECT_STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        tmp_path = _PROJECT_STORE_PATH.with_suffix(".pkl.tmp")
-        with tmp_path.open("wb") as f:
-            pickle.dump(_projects, f, protocol=pickle.HIGHEST_PROTOCOL)
-        tmp_path.replace(_PROJECT_STORE_PATH)
-    except Exception as exc:
-        logger.warning("Failed to save project store: %s", exc)
+        db.save_project(project)
+    except Exception as exc:  # pragma: no cover - defensive
+        logger.warning("Failed to persist project %s: %s", project.id, exc)
 
 
-def _load_projects_from_disk() -> None:
+def load_projects_into_cache() -> None:
+    """Populate the in-memory cache from the database. Called at app startup."""
     global _projects
-    if not _PROJECT_STORE_PATH.exists():
-        return
-    try:
-        with _PROJECT_STORE_PATH.open("rb") as f:
-            data = pickle.load(f)
-        if isinstance(data, dict):
-            _projects = data
-            logger.info("Loaded %d project(s) from %s", len(_projects), _PROJECT_STORE_PATH)
-    except Exception as exc:
-        logger.warning(
-            "Failed to load project store at %s (%s). Starting with empty store.",
-            _PROJECT_STORE_PATH,
-            exc,
-        )
-        try:
-            _PROJECT_STORE_PATH.rename(_PROJECT_STORE_PATH.with_suffix(".pkl.broken"))
-        except Exception:
-            pass
+    _projects = db.load_all_projects()
 
 
 def get_project_store_summary() -> Dict[str, Any]:
+    url = settings.resolved_database_url
     return {
         "project_count": len(_projects),
-        "store_path": str(_PROJECT_STORE_PATH),
+        "store_path": url.split("@")[-1] if "@" in url else url,
     }
 
 
 def clear_project_store_for_tests() -> None:
+    """Reset the store to empty. Used by tests."""
     global _projects
+    db.init_db()
+    db.clear_all_projects()
     _projects = {}
     _project_stage_locks.clear()
-    try:
-        if _PROJECT_STORE_PATH.exists():
-            _PROJECT_STORE_PATH.unlink()
-    except Exception:
-        pass
 
-
-_load_projects_from_disk()
 
 router = APIRouter(prefix="/api", tags=["pipeline"])
 
@@ -181,7 +155,7 @@ def _serialize_project(project: Project, include_graph: bool = True) -> Dict[str
 
 
 def _persist_and_serialize(project: Project, include_graph: bool = True) -> Dict[str, Any]:
-    _save_projects_to_disk()
+    _save_project(project)
     return _serialize_project(project, include_graph=include_graph)
 
 
@@ -622,6 +596,6 @@ async def stage_08_agent_chat(project_id: str, agent_id: str, req: AgentChatRequ
         raise HTTPException(status_code=500, detail="Agent chat failed")
 
     project.log("info", f"User chatted with {agent.name}", stage="deep_interaction")
-    _save_projects_to_disk()
+    _save_project(project)
     return {"agent_id": agent.id, "agent_name": agent.name, "user_message": req.message, "reply": reply}
 

@@ -169,28 +169,24 @@ in-memory store from the previous backend lifetime is gone and there's
 no on-disk record to restore.
 
 **Fix:** click **New project** in the workspace header to start fresh.
-From now on every project will persist via
-`backend/.quorum_projects.pkl`. You'll see the load on backend
-startup:
+From now on every project is persisted in the database. You'll see the
+load on backend startup:
 
 ```
-INFO     pipeline.router    Loaded N project(s) from .quorum_projects.pkl
+INFO     quorum_backend.pipeline.db    Loaded N project(s) from the database
 ```
 
-### Pickle file corrupted after a model update
+### Database schema out of date
 
-**Symptom:** the backend startup log shows
-`Failed to load project store ... Starting with empty store.`
+**Symptom:** the backend fails to start with a SQL error about a missing
+table or column.
 
-**Cause:** you updated a dataclass schema and the old pickle file no
-longer matches. Quorum handles this automatically — it renames the
-broken file to `.pkl.broken` and starts with an empty store.
+**Cause:** the database predates a schema change.
 
-**Fix:** none required. Your old projects are gone but the file
-rename means no manual cleanup is needed. If you need them back,
-roll back to the previous code version, restart, then upgrade
-again — but in practice schema changes are rare and not worth
-preserving across.
+**Fix:** none usually required — the backend runs Alembic migrations to
+head on startup (`init_db`). If a migration fails, check that
+`DATABASE_URL` points at a database the backend can create tables in, and
+review the startup log for the failing revision.
 
 ## Frontend issues
 

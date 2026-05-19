@@ -105,25 +105,31 @@ DEBUG=true
 SERVER_HOST=0.0.0.0
 SERVER_PORT=8000
 
-# Project persistence file (defaults to backend/.quorum_projects.pkl)
-QUORUM_PROJECT_STORE_PATH=/var/lib/quorum/projects.pkl
+# Project store database (SQLAlchemy URL).
+# Unset = local SQLite file; set to PostgreSQL for production.
+DATABASE_URL=postgresql+psycopg2://quorum:quorum@localhost:5432/quorum
 ```
 
 ## Project persistence
 
-Projects are persisted to disk via Python pickle so they survive backend
-restarts. The default path is `backend/.quorum_projects.pkl`. Override
-with the `QUORUM_PROJECT_STORE_PATH` environment variable.
+Projects are persisted to a SQL database so they survive backend restarts.
+The store is configured with `DATABASE_URL`, a SQLAlchemy URL:
 
-The persistence layer handles schema mismatches gracefully — if you
-update a dataclass field and an old pickle file can't be loaded, it's
-renamed to `.pkl.broken` and the store starts fresh. No manual cleanup
-required.
+- **Unset** — the backend falls back to a local SQLite file
+  (`backend/.quorum_projects.db`). Zero configuration; good for development.
+- **PostgreSQL** — the production target. The `docker compose` stack runs
+  a `postgres` service and sets `DATABASE_URL` automatically.
 
-To wipe all projects manually:
+Each project is stored as one row with its full state in a JSON column.
+The schema is managed by Alembic migrations, which run automatically on
+backend startup (`init_db`), so the database is always brought up to date.
+
+To wipe all projects manually, drop the database (or the SQLite file):
 
 ```bash
-rm backend/.quorum_projects.pkl
+rm backend/.quorum_projects.db        # SQLite
+# or, for Postgres:
+docker compose down -v                # removes the quorum-db volume
 ```
 
 ## Frontend variables
@@ -158,11 +164,11 @@ model consistently truncates, edit the `budgets` list in
 
 ### Project store size
 
-The pickle store grows monotonically — every project ever created stays
-in the store until you delete it. For a production deployment with
-many projects, you'll want to periodically prune old projects or
-migrate to a real database. The persistence layer is isolated to
-`backend/src/quorum_backend/pipeline/router.py` so swapping it is straightforward.
+The store grows monotonically — every project ever created stays until
+you delete it. For a busy production deployment, periodically prune old
+projects. The persistence layer is isolated to
+`backend/src/quorum_backend/pipeline/db.py`, and the schema evolves
+through Alembic migrations under `backend/src/quorum_backend/migrations/`.
 
 ## See also
 
