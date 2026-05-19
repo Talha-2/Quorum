@@ -8,10 +8,12 @@ import asyncio
 import json
 import logging
 import re
+import time
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
 from quorum_backend.config import settings
+from quorum_backend.observability import llm_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -771,6 +773,40 @@ class LocalDeterministicProvider(LLMProvider):
         )
 
 
+class InstrumentedProvider(LLMProvider):
+    """Wraps a provider to time and record every call (see observability)."""
+
+    def __init__(self, inner: LLMProvider):
+        self._inner = inner
+        self.name = inner.name
+
+    async def generate(self, system: str, user_message: str, max_tokens: int = 1024) -> str:
+        start = time.perf_counter()
+        prompt_chars = len(system) + len(user_message)
+        completion = ""
+        ok = True
+        try:
+            completion = await self._inner.generate(system, user_message, max_tokens)
+            return completion
+        except Exception:
+            ok = False
+            raise
+        finally:
+            latency_ms = (time.perf_counter() - start) * 1000.0
+            llm_metrics.record(
+                self.name, latency_ms, prompt_chars, len(completion), ok
+            )
+            logger.info(
+                "llm.call provider=%s ok=%s latency_ms=%.0f "
+                "prompt_chars=%d completion_chars=%d",
+                self.name,
+                ok,
+                latency_ms,
+                prompt_chars,
+                len(completion),
+            )
+
+
 def _fallback_local(reason: str) -> LLMProvider:
     logger.warning("%s Falling back to LocalDeterministicProvider.", reason)
     return LocalDeterministicProvider()
@@ -830,9 +866,10 @@ _llm_provider: Optional[LLMProvider] = None
 def init_llm() -> None:
     global _llm_provider
     try:
-        _llm_provider = get_llm_provider()
+        provider = get_llm_provider()
     except Exception as exc:  # pragma: no cover
-        _llm_provider = _fallback_local(f"LLM initialization failed: {exc}")
+        provider = _fallback_local(f"LLM initialization failed: {exc}")
+    _llm_provider = InstrumentedProvider(provider)
 
 
 def get_llm() -> LLMProvider:

@@ -15,6 +15,7 @@ from pydantic import BaseModel
 
 from quorum_backend.config import settings
 from quorum_backend.domains import get_domain, is_valid_domain, list_domains
+from quorum_backend.observability import llm_metrics
 from quorum_backend.pipeline import db
 from quorum_backend.pipeline.env_setup import build_roster_agents, generate_agents_for_graph
 from quorum_backend.pipeline.file_parser import (
@@ -420,6 +421,15 @@ async def get_domains():
             }
             for d in list_domains()
         ]
+    }
+
+
+@router.get("/metrics")
+async def get_metrics():
+    """Operational metrics: LLM-call aggregates and project counts."""
+    return {
+        "llm": llm_metrics.snapshot(),
+        "projects": {"count": len(_projects)},
     }
 
 

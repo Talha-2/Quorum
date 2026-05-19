@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     app_name: str = "Quorum"
     debug: bool = False
 
+    # Logging — "plain" (default) or "json" for structured logs.
+    log_format: str = Field(default="plain", validation_alias="LOG_FORMAT")
+
     # LLM Provider
     llm_provider: str = "local"  # "local", "google", "claude", or "azure"
 

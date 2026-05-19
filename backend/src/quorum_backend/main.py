@@ -13,6 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from quorum_backend.config import settings
 from quorum_backend.llm import get_llm, init_llm
+from quorum_backend.observability import configure_logging
 from quorum_backend.pipeline import db
 from quorum_backend.pipeline.router import (
     get_project_store_summary,
@@ -20,7 +21,7 @@ from quorum_backend.pipeline.router import (
     router as pipeline_router,
 )
 
-logging.basicConfig(level=logging.INFO)
+configure_logging(settings.log_format)
 logger = logging.getLogger(__name__)
 
 
