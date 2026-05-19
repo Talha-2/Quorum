@@ -235,6 +235,7 @@ class Project:
     brief: str
     constraints: str = ""
     signals: str = ""
+    domain: str = "general"  # domain profile key; see quorum_backend.domains
     state: ProjectState = ProjectState.CREATED
     created_at: str = field(default_factory=utc_now_iso)
     updated_at: str = field(default_factory=utc_now_iso)

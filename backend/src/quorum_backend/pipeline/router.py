@@ -5,6 +5,7 @@ FastAPI router for the production Quorum pipeline.
 from __future__ import annotations
 
 import asyncio
+import copy
 import logging
 import pickle
 from dataclasses import asdict
@@ -15,6 +16,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from quorum_backend.config import settings
+from quorum_backend.domains import get_domain, is_valid_domain, list_domains
 from quorum_backend.pipeline.env_setup import generate_agents_for_graph
 from quorum_backend.pipeline.file_parser import (
     SUPPORTED_EXTENSIONS,
@@ -103,6 +105,7 @@ class CreateProjectRequest(BaseModel):
     brief: str
     constraints: Optional[str] = ""
     signals: Optional[str] = ""
+    domain: Optional[str] = "general"
 
 
 class SimulationStartRequest(BaseModel):
@@ -141,6 +144,7 @@ def _serialize_project(project: Project, include_graph: bool = True) -> Dict[str
         "brief": project.brief,
         "constraints": project.constraints,
         "signals": project.signals,
+        "domain": getattr(project, "domain", "general"),
         "state": project.state.value,
         "created_at": project.created_at,
         "updated_at": project.updated_at,
@@ -262,6 +266,20 @@ def _next_stage_id(project: Project) -> Optional[str]:
 
 async def _run_ontology_stage(project: Project) -> None:
     if project.ontology is not None:
+        return
+
+    # Domains with a fixed ontology skip the LLM entirely: the schema is
+    # deterministic and auditable, which matters for clinical domains.
+    domain = get_domain(getattr(project, "domain", "general"))
+    if domain.fixed_ontology is not None:
+        ontology = copy.deepcopy(domain.fixed_ontology)
+        project.ontology = ontology
+        project.transition(
+            ProjectState.ONTOLOGY_GENERATED,
+            f"Applied fixed {domain.name} ontology: "
+            f"{len(ontology.entity_types)} entity types, "
+            f"{len(ontology.edge_types)} edge types",
+        )
         return
 
     n_docs = len(project.uploaded_documents)
@@ -399,6 +417,22 @@ async def _run_report_stage(project: Project) -> None:
     project.transition(ProjectState.REPORT_READY, f"Report ready: {len(report.get('sections') or [])} sections")
 
 
+@router.get("/domains")
+async def get_domains():
+    """List the domain profiles a project can be created with."""
+    return {
+        "domains": [
+            {
+                "key": d.key,
+                "name": d.name,
+                "description": d.description,
+                "fixed_ontology": d.uses_fixed_ontology,
+            }
+            for d in list_domains()
+        ]
+    }
+
+
 @router.get("/projects/{project_id}/pipeline")
 async def get_pipeline_status(project_id: str):
     project = _get_project_or_404(project_id)
@@ -412,14 +446,28 @@ async def create_project(req: CreateProjectRequest):
         if not brief:
             raise HTTPException(status_code=400, detail="brief is required")
 
+        domain_key = (req.domain or "general").strip() or "general"
+        if not is_valid_domain(domain_key):
+            known = ", ".join(d.key for d in list_domains())
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unknown domain '{domain_key}'. Known domains: {known}",
+            )
+
         project = Project(
             id=make_project_id(),
             title=(req.title or brief[:60]).strip(),
             brief=brief,
             constraints=(req.constraints or "").strip(),
             signals=(req.signals or "").strip(),
+            domain=domain_key,
         )
-        project.log("info", f"Project created: {project.id}", stage="create")
+        domain = get_domain(domain_key)
+        project.log(
+            "info",
+            f"Project created: {project.id} (domain: {domain.name})",
+            stage="create",
+        )
         _projects[project.id] = project
         return _persist_and_serialize(project)
 
