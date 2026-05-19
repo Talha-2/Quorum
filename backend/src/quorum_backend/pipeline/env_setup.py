@@ -1,5 +1,9 @@
 """
-Environment setup — generate one agent per entity in the knowledge graph.
+Environment setup — instantiate the agent panel for the simulation.
+
+For the general domain there is one agent per speaker-capable entity in the
+knowledge graph. For a domain with a fixed roster (e.g. the oncology MDT) the
+panel is built deterministically from that roster instead.
 """
 
 from __future__ import annotations
@@ -8,8 +12,9 @@ import json
 import logging
 import random
 import re
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
+from quorum_backend.domains.base import RosterMember
 from quorum_backend.llm import get_llm
 
 from quorum_backend.pipeline.models import AgentProfile, GraphEntityNode, KnowledgeGraph, make_agent_id
@@ -226,6 +231,48 @@ def _fallback_profile(entity: GraphEntityNode) -> AgentProfile:
         source_entity_type=entity.type,
         is_individual=entity.is_individual,
     )
+
+
+def build_roster_agents(roster: Sequence[RosterMember]) -> List[AgentProfile]:
+    """Build the agent panel from a domain's fixed roster.
+
+    Deterministic — no LLM call — so a fixed-roster domain always convenes
+    the same panel. Each member's debate mandate is appended to its persona.
+    """
+    agents: List[AgentProfile] = []
+    for member in roster:
+        persona = member.persona
+        if member.mandate:
+            persona = (
+                f"{persona}\n\nIn this deliberation you are responsible for: "
+                f"{member.mandate}"
+            )
+        agents.append(
+            AgentProfile(
+                id=make_agent_id(),
+                user_name=_slugify_username(member.role),
+                name=member.name,
+                role=member.role,
+                bio=member.bio,
+                persona=persona,
+                expertise=list(member.expertise),
+                interested_topics=[],
+                optimism=member.optimism,
+                risk_tolerance=member.risk_tolerance,
+                caution=member.caution,
+                stance=member.stance,
+                bias=member.bias,
+                age=None,
+                gender=None,
+                mbti=None,
+                country=None,
+                profession=member.role,
+                source_entity_id=None,
+                source_entity_type="Specialist",
+                is_individual=True,
+            )
+        )
+    return agents
 
 
 SPEAKER_TYPE_PATTERNS = frozenset(

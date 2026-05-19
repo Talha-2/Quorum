@@ -12,6 +12,7 @@ from fastapi.testclient import TestClient
 from quorum_backend import llm, main
 from quorum_backend.domains import DEFAULT_DOMAIN_KEY, get_domain, is_valid_domain, list_domains
 from quorum_backend.pipeline import router as pipeline_router
+from quorum_backend.pipeline.env_setup import build_roster_agents
 
 
 def _make_test_dir() -> Path:
@@ -53,6 +54,28 @@ def test_oncology_domain_has_fixed_ontology():
     for edge in onc.fixed_ontology.edge_types:
         for src, tgt in edge.source_targets:
             assert src in names and tgt in names
+
+
+def test_oncology_domain_has_full_mdt_roster():
+    onc = get_domain("oncology_mdt")
+    assert onc.uses_fixed_roster is True
+    roster = onc.fixed_agent_roster
+    assert len(roster) == 10
+    roles = {m.role for m in roster}
+    assert {"Medical Oncologist", "Pathologist", "Patient Advocate"}.issubset(roles)
+    for member in roster:
+        assert member.role and member.persona and member.mandate
+
+
+def test_build_roster_agents_is_deterministic():
+    roster = get_domain("oncology_mdt").fixed_agent_roster
+    agents = build_roster_agents(roster)
+    assert len(agents) == len(roster)
+    for agent, member in zip(agents, roster):
+        assert agent.role == member.role
+        assert agent.source_entity_type == "Specialist"
+        assert agent.is_individual is True
+        assert member.mandate in agent.persona  # mandate appended to persona
 
 
 def test_unknown_domain_raises():
@@ -145,5 +168,46 @@ def test_oncology_project_uses_fixed_ontology():
             )
             edge_names = {e["name"] for e in ontology["edge_types"]}
             assert "HAS_DIAGNOSIS" in edge_names
+    finally:
+        shutil.rmtree(test_dir, ignore_errors=True)
+
+
+def test_oncology_pipeline_convenes_fixed_panel_end_to_end():
+    """The full specialized pipeline runs and convenes the 10-seat MDT panel."""
+    test_dir = _make_test_dir()
+    _reset_state(test_dir)
+    try:
+        with TestClient(main.app) as client:
+            project_id = client.post(
+                "/api/projects",
+                json={
+                    "brief": "72-year-old, stage IIA colon cancer, well-controlled diabetes.",
+                    "domain": "oncology_mdt",
+                },
+            ).json()["id"]
+
+            # Drive every stage through to the report.
+            for expected in [
+                "ontology_generated",
+                "graph_completed",
+                "env_ready",
+                "config_ready",
+                "activation_ready",
+                "sim_completed",
+                "report_ready",
+            ]:
+                resp = client.post(
+                    f"/api/projects/{project_id}/pipeline/run-next",
+                    json={"rounds": 2, "agents_per_round": 3},
+                )
+                assert resp.status_code == 200, resp.text
+                assert resp.json()["state"] == expected
+
+            final = client.get(f"/api/projects/{project_id}").json()
+            agents = final["agents"]
+            assert len(agents) == 10
+            assert all(a["source_entity_type"] == "Specialist" for a in agents)
+            assert "Medical Oncologist" in {a["role"] for a in agents}
+            assert final["report"]["sections"]
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)

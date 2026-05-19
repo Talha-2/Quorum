@@ -17,7 +17,7 @@ from pydantic import BaseModel
 
 from quorum_backend.config import settings
 from quorum_backend.domains import get_domain, is_valid_domain, list_domains
-from quorum_backend.pipeline.env_setup import generate_agents_for_graph
+from quorum_backend.pipeline.env_setup import build_roster_agents, generate_agents_for_graph
 from quorum_backend.pipeline.file_parser import (
     SUPPORTED_EXTENSIONS,
     aggregate_documents,
@@ -326,6 +326,22 @@ async def _run_env_stage(project: Project) -> None:
         return
     if not project.graph or not project.graph.nodes:
         raise HTTPException(status_code=409, detail="Graph must be built first")
+
+    # A fixed-roster domain convenes its standing panel deterministically.
+    domain = get_domain(getattr(project, "domain", "general"))
+    if domain.uses_fixed_roster:
+        project.log(
+            "info",
+            f"Convening the fixed {domain.name} panel ({len(domain.fixed_agent_roster)} seats)…",
+            stage="env",
+        )
+        agents = build_roster_agents(domain.fixed_agent_roster)
+        project.agents = agents
+        project.transition(
+            ProjectState.ENV_READY,
+            f"Environment ready: {len(agents)}-seat {domain.name} panel convened",
+        )
+        return
 
     project.log("info", f"Generating {min(12, len(project.graph.nodes))} agent personas…", stage="env")
     agents = await generate_agents_for_graph(brief=project.brief, graph=project.graph, max_agents=12)
