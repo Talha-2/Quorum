@@ -91,7 +91,50 @@ def test_unknown_domain_raises():
 def test_list_domains_is_default_first():
     domains = list_domains()
     assert domains[0].key == DEFAULT_DOMAIN_KEY
-    assert {"general", "oncology_mdt"}.issubset({d.key for d in domains})
+    assert {"general", "oncology_mdt", "quorum_dx_education"}.issubset(
+        {d.key for d in domains}
+    )
+
+
+def test_dx_education_domain_full_shape():
+    dx = get_domain("quorum_dx_education")
+    assert dx.uses_fixed_ontology and dx.uses_fixed_roster and dx.uses_fixed_report
+    assert len(dx.fixed_ontology.entity_types) == 10
+    roles = {m.role for m in dx.fixed_agent_roster}
+    # The reasoning archetypes that drive the debate.
+    assert {"Generalist / Internist", "Skeptic", "Can't-Miss Agent", "Bayesian"}.issubset(roles)
+    section_titles = [s.title for s in dx.fixed_report_outline]
+    assert section_titles[0] == "Presentation summary"
+    assert "Cognitive-bias flags" in section_titles
+
+
+def test_dx_education_full_pipeline_emits_ddx_brief():
+    test_dir = _make_test_dir()
+    _reset_state(test_dir)
+    try:
+        with TestClient(main.app) as client:
+            project_id = client.post(
+                "/api/projects",
+                json={
+                    "brief": "55-year-old with sudden tearing back pain.",
+                    "domain": "quorum_dx_education",
+                    "title": "Case vignette",
+                },
+            ).json()["id"]
+            for _ in range(7):
+                r = client.post(
+                    f"/api/projects/{project_id}/pipeline/run-next",
+                    json={"rounds": 2, "agents_per_round": 3},
+                )
+                assert r.status_code == 200, r.text
+            report = client.get(f"/api/projects/{project_id}").json()["report"]
+            assert report["title"].startswith("Differential Diagnosis Brief")
+            section_titles = [s["title"] for s in report["sections"]]
+            assert section_titles[0] == "Presentation summary"
+            assert section_titles[-1] == "Open questions and teaching points"
+            assert "education only" in report["markdown"].lower()
+    finally:
+        shutil.rmtree(test_dir, ignore_errors=True)
 
 
 # --- API integration tests ----------------------------------------------

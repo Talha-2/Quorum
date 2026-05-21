@@ -11,13 +11,14 @@ from __future__ import annotations
 from typing import Dict, List, Optional
 
 from quorum_backend.domains.base import DomainProfile
+from quorum_backend.domains.dx_education import DX_EDUCATION_DOMAIN
 from quorum_backend.domains.general import GENERAL_DOMAIN
 from quorum_backend.domains.oncology import ONCOLOGY_MDT_DOMAIN
 
 DEFAULT_DOMAIN_KEY = GENERAL_DOMAIN.key
 
 _REGISTRY: Dict[str, DomainProfile] = {
-    d.key: d for d in (GENERAL_DOMAIN, ONCOLOGY_MDT_DOMAIN)
+    d.key: d for d in (GENERAL_DOMAIN, ONCOLOGY_MDT_DOMAIN, DX_EDUCATION_DOMAIN)
 }
 
 
