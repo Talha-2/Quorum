@@ -58,6 +58,7 @@ services:
       # Server
       DEBUG: ${DEBUG:-false}
       LOG_FORMAT: ${LOG_FORMAT:-json}
+      DEID_MODE: ${DEID_MODE:-warn}
       SERVER_HOST: 0.0.0.0
       SERVER_PORT: 8000
 

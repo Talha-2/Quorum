@@ -18,6 +18,13 @@ class Settings(BaseSettings):
     # Logging — "plain" (default) or "json" for structured logs.
     log_format: str = Field(default="plain", validation_alias="LOG_FORMAT")
 
+    # De-identification gate at upload.
+    # off:   no scanning
+    # warn:  scan and attach findings to the document, allow the upload (default)
+    # strict: scan and reject the upload if any PHI is detected
+    # redact: scan and replace PHI matches with [REDACTED:<kind>]
+    deid_mode: str = Field(default="warn", validation_alias="DEID_MODE")
+
     # LLM Provider
     llm_provider: str = "local"  # "local", "google", "claude", or "azure"
 

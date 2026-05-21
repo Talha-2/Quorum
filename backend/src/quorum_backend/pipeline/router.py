@@ -17,6 +17,7 @@ from quorum_backend.config import settings
 from quorum_backend.domains import get_domain, is_valid_domain, list_domains
 from quorum_backend.observability import llm_metrics
 from quorum_backend.pipeline import db
+from quorum_backend.pipeline.deid import DeidMode, redact, scan_for_phi, summary as phi_summary
 from quorum_backend.pipeline.env_setup import build_roster_agents, generate_agents_for_graph
 from quorum_backend.pipeline.file_parser import (
     SUPPORTED_EXTENSIONS,
@@ -136,7 +137,12 @@ def _serialize_project(project: Project, include_graph: bool = True) -> Dict[str
         }
     if project.uploaded_documents:
         data["uploaded_documents"] = [
-            {"filename": d.get("filename", "untitled"), "char_count": d.get("char_count", 0)}
+            {
+                "filename": d.get("filename", "untitled"),
+                "char_count": d.get("char_count", 0),
+                "phi_findings_count": len(d.get("phi_findings") or []),
+                "phi_redacted": bool(d.get("phi_redacted")),
+            }
             for d in project.uploaded_documents
         ]
     if project.agents:
@@ -505,7 +511,50 @@ async def upload_document(project_id: str, file: UploadFile = File(...)):
         if not text or not text.strip():
             raise HTTPException(status_code=400, detail=f"Could not extract any text from {filename}")
 
-        project.uploaded_documents.append({"filename": filename, "text": text, "char_count": len(text)})
+        # De-identification gate. Surfaces or redacts common PHI patterns
+        # before the case enters the pipeline. Not a substitute for a real
+        # de-id service under a BAA — see deid.py.
+        mode = DeidMode.parse(settings.deid_mode)
+        phi_findings: list = []
+        phi_redacted = False
+        if mode is not DeidMode.OFF:
+            if mode is DeidMode.REDACT:
+                text, finds = redact(text)
+                phi_findings = [f.to_dict() for f in finds]
+                phi_redacted = bool(finds)
+            else:
+                finds = scan_for_phi(text)
+                phi_findings = [f.to_dict() for f in finds]
+                if finds and mode is DeidMode.STRICT:
+                    counts = phi_summary(finds)
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            f"PHI detected in {filename} ({counts}); "
+                            "upload rejected by strict de-identification gate."
+                        ),
+                    )
+
+        if phi_findings:
+            kinds: dict = {}
+            for f in phi_findings:
+                kinds[f["kind"]] = kinds.get(f["kind"], 0) + 1
+            level = "info" if phi_redacted else "warning"
+            project.log(
+                level,
+                f"De-id gate ({mode.value}): {len(phi_findings)} PHI finding(s) in {filename} — {kinds}",
+                stage="upload",
+            )
+
+        project.uploaded_documents.append(
+            {
+                "filename": filename,
+                "text": text,
+                "char_count": len(text),
+                "phi_findings": phi_findings,
+                "phi_redacted": phi_redacted,
+            }
+        )
         project.log("info", f"Uploaded {filename} ({len(text)} chars extracted)", stage="upload")
         return _persist_and_serialize(project)
 
