@@ -20,6 +20,7 @@ from quorum_backend.pipeline.router import (
     load_projects_into_cache,
     router as pipeline_router,
 )
+from quorum_backend.pipeline.worker import start_worker, stop_worker
 
 configure_logging(settings.log_format)
 logger = logging.getLogger(__name__)
@@ -31,7 +32,13 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     # Bring the database schema to head, then warm the in-memory cache.
     db.init_db()
     load_projects_into_cache()
-    yield
+    # Start the durable job worker. Existing sync endpoints still work; the
+    # worker drives any jobs enqueued via /pipeline/run-async.
+    start_worker()
+    try:
+        yield
+    finally:
+        await stop_worker()
 
 
 app = FastAPI(

@@ -17,6 +17,7 @@ from quorum_backend.config import settings
 from quorum_backend.domains import get_domain, is_valid_domain, list_domains
 from quorum_backend.observability import llm_metrics
 from quorum_backend.pipeline import db
+from quorum_backend.pipeline import jobs as job_store
 from quorum_backend.pipeline.deid import DeidMode, redact, scan_for_phi, summary as phi_summary
 from quorum_backend.pipeline.env_setup import build_roster_agents, generate_agents_for_graph
 from quorum_backend.pipeline.file_parser import (
@@ -69,6 +70,7 @@ def clear_project_store_for_tests() -> None:
     global _projects
     db.init_db()
     db.clear_all_projects()
+    job_store.clear_all_jobs_for_tests()
     _projects = {}
     _project_stage_locks.clear()
 
@@ -641,6 +643,36 @@ async def run_next_pipeline_stage(project_id: str, req: RunNextStageRequest):
             raise HTTPException(status_code=409, detail=f"Unknown next stage: {next_stage}")
 
         return _persist_and_serialize(project)
+
+
+@router.post("/projects/{project_id}/pipeline/run-async")
+async def run_next_pipeline_stage_async(project_id: str, req: RunNextStageRequest):
+    """Enqueue a job that advances the project by one stage.
+
+    Returns immediately with the job id. The actual stage is executed by the
+    background worker. Poll ``GET /api/jobs/{job_id}`` for status.
+    """
+    project = _get_project_or_404(project_id)
+    job = job_store.enqueue(
+        project_id=project.id,
+        job_type="run_next",
+        payload={"rounds": req.rounds, "agents_per_round": req.agents_per_round},
+    )
+    return job.to_dict()
+
+
+@router.get("/jobs/{job_id}")
+async def get_job(job_id: str):
+    job = job_store.get(job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail=f"Job {job_id} not found")
+    return job.to_dict()
+
+
+@router.get("/projects/{project_id}/jobs")
+async def list_project_jobs(project_id: str):
+    _get_project_or_404(project_id)
+    return {"jobs": [j.to_dict() for j in job_store.list_for_project(project_id)]}
 
 
 @router.post("/projects/{project_id}/agents/{agent_id}/chat")
