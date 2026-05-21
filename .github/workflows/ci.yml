@@ -36,6 +36,11 @@ jobs:
           DATABASE_URL: postgresql+psycopg2://quorum:quorum@localhost:5432/quorum
         run: |
           pytest -q backend/tests
+      - name: Security audit (Python deps)
+        # --skip-editable skips the locally installed quorum-backend package
+        # itself (it's not on PyPI). Fails on any known CVE in our deps.
+        run: |
+          pip-audit --skip-editable
 
   frontend:
     runs-on: ubuntu-latest
@@ -57,4 +62,10 @@ jobs:
         env:
           NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
         run: npm run build
+      - name: Security audit (npm deps)
+        # Fails on critical advisories only. The current high-severity findings
+        # are in postcss bundled inside Next 14's own node_modules — build-time
+        # only, no runtime exposure — and clear when we upgrade to Next 15+.
+        working-directory: frontend
+        run: npm audit --audit-level=critical
 

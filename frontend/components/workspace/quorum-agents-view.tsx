@@ -51,7 +51,8 @@ function colorForAgent(name: string): string {
 }
 
 export default function QuorumAgentsView({ project, onChatWithAgent }: QuorumAgentsViewProps) {
-  const agents = project.agents ?? []
+  // Memoized so it is a stable dependency for the useMemo hooks below.
+  const agents = useMemo(() => project.agents ?? [], [project.agents])
 
   const [search, setSearch] = useState('')
   const [stanceFilter, setStanceFilter] = useState<'all' | 'support' | 'oppose' | 'neutral'>(

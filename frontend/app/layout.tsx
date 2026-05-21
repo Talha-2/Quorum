@@ -38,9 +38,14 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Google Sans + Google Sans Text from Google Fonts */}
+        {/*
+          Google Sans is Google's proprietary family and is not in the
+          next/font/google catalog, so it is loaded via a stylesheet link.
+          Inter (loaded above via next/font) is the fallback.
+        */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* eslint-disable-next-line @next/next/no-page-custom-font */}
         <link
           href="https://fonts.googleapis.com/css2?family=Google+Sans+Text:wght@400;500;700&family=Google+Sans:wght@400;500;700&display=swap"
           rel="stylesheet"
