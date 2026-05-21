@@ -1,16 +1,21 @@
 // Typed client for the Quorum pipeline API.
 
 import { apiClient, APIError } from './api-client'
-import type { Project } from '@/types/pipeline'
+import type { DomainInfo, Project } from '@/types/pipeline'
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:8000'
 
 export const pipelineApi = {
+  listDomains() {
+    return apiClient.get<{ domains: DomainInfo[] }>('/api/domains')
+  },
+
   createProject(input: {
     title?: string
     brief: string
     constraints?: string
     signals?: string
+    domain?: string
   }) {
     return apiClient.post<Project>('/api/projects', input)
   },

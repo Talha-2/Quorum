@@ -159,6 +159,20 @@ const pipelineStages = [
 // ============================================
 const useCases = [
   {
+    icon: FlaskConical,
+    label: 'Oncology MDT',
+    title: 'Prepare the tumor board before it meets.',
+    body:
+      'Feed in a de-identified case packet. A standing 10-seat panel — medical/radiation/surgical oncology, pathology, radiology, palliative care, pharmacy, navigation, trials, patient advocate — deliberates and emits a Tumor Board Brief: recommended pathway, alternatives considered, dissents, contraindications, trial eligibility. Decision support, not autonomous diagnosis.',
+  },
+  {
+    icon: Building2,
+    label: 'Quorum Dx (education)',
+    title: 'Train clinical reasoning, not patient care.',
+    body:
+      'A diagnostic-reasoning gym for students and residents. A panel of reasoning archetypes — generalist, organ specialists, skeptic, epidemiologist, can\'t-miss, Bayesian — debates the differential on a synthetic vignette and writes a Differential Diagnosis Brief with cognitive-bias flags.',
+  },
+  {
     icon: Briefcase,
     label: 'Strategy',
     title: 'Should we ship this in Q2?',
@@ -166,25 +180,11 @@ const useCases = [
       'Upload your roadmap PDF, write the question, and watch a panel of stakeholders — risk officers, founders, engineers, customer advocates — debate the trade-offs before they bite you in standup.',
   },
   {
-    icon: Building2,
-    label: 'Hiring',
-    title: 'Senior PM or two mid-level engineers?',
-    body:
-      'Quorum extracts every relevant entity from your hiring doc — open roles, budget, team — and instantiates one agent per stakeholder perspective. Each weighs the decision through their own bias.',
-  },
-  {
     icon: Scale,
     label: 'Policy',
     title: 'Will this regulation hold up?',
     body:
       'Upload the draft, let Quorum extract every concrete actor it touches — agencies, courts, advocacy groups, affected communities — and surface the constituencies that will resist and why.',
-  },
-  {
-    icon: FlaskConical,
-    label: 'Research',
-    title: 'Stress-test a thesis before publishing.',
-    body:
-      'Upload your draft. Quorum casts a panel of expert critics — domain specialists, statisticians, methodological skeptics — and each one challenges the work from their own discipline.',
   },
 ]
 
@@ -282,10 +282,13 @@ export default function LandingPage() {
                 variants={staggerItem}
                 className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--muted)]"
               >
-                Quorum reads your reality-seed PDFs, designs a topic-specific
-                ontology, instantiates one AI agent per real-world entity, runs
-                them through a structured debate, and writes you a prediction
-                report — all locally, with the LLM provider of your choice.
+                A multi-stakeholder deliberation engine. Out of the box: a
+                <span className="text-[var(--ink)]"> virtual tumor board </span>
+                that prepares a Tumor Board Brief before the human MDT meets,
+                a <span className="text-[var(--ink)]">diagnostic-reasoning gym</span>{' '}
+                for clinical education, and a general mode for any
+                multi-stakeholder decision. Self-hosted, with the LLM provider
+                of your choice.
               </motion.p>
 
               <motion.div

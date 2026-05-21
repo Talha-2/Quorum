@@ -198,12 +198,20 @@ export interface Report {
   generated_at: string
 }
 
+export interface DomainInfo {
+  key: string
+  name: string
+  description: string
+  fixed_ontology: boolean
+}
+
 export interface Project {
   id: string
   title: string
   brief: string
   constraints: string
   signals: string
+  domain: string
   state: ProjectState
   created_at: string
   updated_at: string

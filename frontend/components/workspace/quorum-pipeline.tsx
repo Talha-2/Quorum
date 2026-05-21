@@ -94,6 +94,10 @@ export default function QuorumPipeline() {
   const [project, setProject] = useState<Project | null>(null)
   const [briefDraft, setBriefDraft] = useState('')
   const [constraintsDraft, setConstraintsDraft] = useState('')
+  const [domainDraft, setDomainDraft] = useState<string>('general')
+  const [availableDomains, setAvailableDomains] = useState<
+    { key: string; name: string; description: string }[]
+  >([])
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const [view, setView] = useState<ViewMode>('pipeline')
   const [error, setError] = useState<string | null>(null)
@@ -129,6 +133,24 @@ export default function QuorumPipeline() {
     stage4Loading ||
     stage5Loading ||
     projectLoading
+
+  useEffect(() => {
+    // Load the list of available domains so the user can pick one when
+    // creating a new project. Best-effort — falls back to "general" if the
+    // backend is unreachable at this moment.
+    let cancelled = false
+    pipelineApi
+      .listDomains()
+      .then((resp) => {
+        if (!cancelled) setAvailableDomains(resp.domains)
+      })
+      .catch(() => {
+        /* leave the picker hidden if we can't fetch */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const requestedView = searchParams.get('view')
@@ -183,6 +205,7 @@ export default function QuorumPipeline() {
       let proj = await pipelineApi.createProject({
         brief: briefDraft.trim(),
         constraints: constraintsDraft.trim(),
+        domain: domainDraft,
       })
       setProject(proj)
 
@@ -537,11 +560,30 @@ export default function QuorumPipeline() {
                     <textarea
                       value={briefDraft}
                       onChange={(e) => setBriefDraft(e.target.value)}
-                      placeholder="What should the swarm debate? E.g. 'What would public opinion look like if Wuhan University reversed its disciplinary decision against a student?'"
+                      placeholder="What should the swarm debate? E.g. 'A 64-year-old with HER2+ stage IIA disease' (oncology MDT) or 'Should we adopt the new workflow next quarter?' (general)"
                       className="input min-h-[120px] resize-y"
                       rows={4}
                     />
                   </div>
+                  {availableDomains.length > 1 && (
+                    <div>
+                      <label className="label-mono mb-2 block">Domain</label>
+                      <select
+                        value={domainDraft}
+                        onChange={(e) => setDomainDraft(e.target.value)}
+                        className="input"
+                      >
+                        {availableDomains.map((d) => (
+                          <option key={d.key} value={d.key}>
+                            {d.name}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="mt-2 text-[11px] text-[var(--muted)] leading-relaxed">
+                        {availableDomains.find((d) => d.key === domainDraft)?.description}
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <label className="label-mono mb-2 block">
                       Constraints (optional)
