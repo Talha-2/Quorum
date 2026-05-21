@@ -55,6 +55,15 @@ class RosterMember:
 
 
 @dataclass(frozen=True)
+class ReportSectionSpec:
+    """One section of a domain's fixed report outline."""
+
+    title: str
+    description: str
+    """Hint the section writer uses to ground the LLM-written body."""
+
+
+@dataclass(frozen=True)
 class DomainProfile:
     """Configuration that specializes the pipeline for one application area."""
 
@@ -73,6 +82,21 @@ class DomainProfile:
     fixed_agent_roster: Tuple[RosterMember, ...] = field(default_factory=tuple)
     """When non-empty, stage 03 builds the panel from this roster."""
 
+    fixed_report_outline: Tuple[ReportSectionSpec, ...] = field(default_factory=tuple)
+    """When non-empty, stage 07 uses this outline instead of LLM planning."""
+
+    report_title_template: Optional[str] = None
+    """Format string with ``{project_title}`` for the report's H1."""
+
+    report_summary: Optional[str] = None
+    """Fixed one-line summary placed under the title. ``None`` falls back."""
+
+    report_section_system_prompt: Optional[str] = None
+    """Domain-tuned system prompt for the per-section LLM call."""
+
+    report_provenance_footer: bool = False
+    """Append a deterministic provenance/disclaimer footer to the markdown."""
+
     @property
     def uses_fixed_ontology(self) -> bool:
         return self.fixed_ontology is not None
@@ -80,3 +104,7 @@ class DomainProfile:
     @property
     def uses_fixed_roster(self) -> bool:
         return len(self.fixed_agent_roster) > 0
+
+    @property
+    def uses_fixed_report(self) -> bool:
+        return len(self.fixed_report_outline) > 0

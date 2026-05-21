@@ -171,6 +171,52 @@ def test_oncology_project_uses_fixed_ontology():
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
+def test_oncology_report_is_a_tumor_board_brief():
+    """Stage 07 emits the fixed Tumor Board Brief shape, not the generic outline."""
+    test_dir = _make_test_dir()
+    _reset_state(test_dir)
+    try:
+        with TestClient(main.app) as client:
+            project_id = client.post(
+                "/api/projects",
+                json={
+                    "brief": "Newly diagnosed stage IIA case with HER2+ biomarker.",
+                    "domain": "oncology_mdt",
+                    "title": "HER2+ stage IIA case",
+                },
+            ).json()["id"]
+
+            for _ in range(7):  # ontology -> graph -> env -> prepare -> activate -> sim -> report
+                resp = client.post(
+                    f"/api/projects/{project_id}/pipeline/run-next",
+                    json={"rounds": 2, "agents_per_round": 3},
+                )
+                assert resp.status_code == 200, resp.text
+
+            report = client.get(f"/api/projects/{project_id}").json()["report"]
+
+            assert report["title"].startswith("Tumor Board Brief")
+            assert "decision support" in report["summary"].lower()
+
+            section_titles = [s["title"] for s in report["sections"]]
+            assert section_titles == [
+                "Case snapshot",
+                "Recommended pathway",
+                "Alternatives considered and why not",
+                "Dissenting opinions",
+                "Contraindications and safety flags",
+                "Clinical trial eligibility",
+                "Open questions for the human board",
+            ]
+
+            md = report["markdown"]
+            assert "## Provenance" in md
+            assert "Disclaimer" in md
+            assert "decision support" in md.lower()
+    finally:
+        shutil.rmtree(test_dir, ignore_errors=True)
+
+
 def test_oncology_pipeline_convenes_fixed_panel_end_to_end():
     """The full specialized pipeline runs and convenes the 10-seat MDT panel."""
     test_dir = _make_test_dir()

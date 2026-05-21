@@ -9,6 +9,7 @@ import logging
 import re
 from typing import Any, Callable, Dict, List, Optional
 
+from quorum_backend.domains import DomainProfile, get_domain
 from quorum_backend.llm import ContentFilterError, get_llm
 from quorum_backend.pipeline.models import Project, utc_now_iso
 
@@ -173,6 +174,18 @@ def _fallback_outline(project: Project) -> Dict[str, Any]:
     }
 
 
+def _fixed_outline_from_domain(project: Project, domain: DomainProfile) -> Dict[str, Any]:
+    """Use a domain's pinned report outline (no LLM call)."""
+    title_template = domain.report_title_template or "{project_title}"
+    title = title_template.format(project_title=project.title[:60] or domain.name)
+    summary = domain.report_summary or ""
+    sections = [
+        {"title": s.title, "description": s.description}
+        for s in domain.fixed_report_outline
+    ]
+    return {"title": title, "summary": summary, "sections": sections}
+
+
 async def _plan_outline(project: Project) -> Dict[str, Any]:
     n_agents = len(project.agents)
     n_messages = len(project.debate_messages)
@@ -244,6 +257,7 @@ async def _write_section(
     report_summary: str,
     section_title: str,
     section_description: str,
+    system_prompt: Optional[str] = None,
 ) -> str:
     user = SECTION_USER_TEMPLATE.format(
         report_title=report_title,
@@ -258,7 +272,11 @@ async def _write_section(
 
     try:
         llm = get_llm()
-        raw = await llm.generate(system=SECTION_SYSTEM_PROMPT, user_message=user, max_tokens=1800)
+        raw = await llm.generate(
+            system=system_prompt or SECTION_SYSTEM_PROMPT,
+            user_message=user,
+            max_tokens=1800,
+        )
     except ContentFilterError:
         logger.warning("Section '%s' blocked by content filter", section_title)
         return "_(Section blocked by content filter — see project events for details.)_"
@@ -284,8 +302,14 @@ async def generate_report(
                 pass
         logger.info(msg)
 
-    _report("Step 1/2: planning report outline…")
-    outline = await _plan_outline(project)
+    domain = get_domain(getattr(project, "domain", "general"))
+
+    if domain.uses_fixed_report:
+        _report(f"Step 1/2: applying fixed {domain.name} report outline…")
+        outline = _fixed_outline_from_domain(project, domain)
+    else:
+        _report("Step 1/2: planning report outline…")
+        outline = await _plan_outline(project)
 
     title = outline["title"]
     summary = outline["summary"]
@@ -300,6 +324,7 @@ async def generate_report(
             report_summary=summary,
             section_title=sec["title"],
             section_description=sec.get("description", ""),
+            system_prompt=domain.report_section_system_prompt,
         )
         written_sections.append({"title": sec["title"], "content": content})
 
@@ -308,6 +333,10 @@ async def generate_report(
         md_parts.append(f"> {summary}\n")
     for sec in written_sections:
         md_parts.append(f"\n## {sec['title']}\n\n{sec['content']}\n")
+
+    if domain.report_provenance_footer:
+        md_parts.append(_provenance_footer(project, domain))
+
     markdown = "\n".join(md_parts)
 
     return {
@@ -317,4 +346,22 @@ async def generate_report(
         "markdown": markdown,
         "generated_at": utc_now_iso(),
     }
+
+
+def _provenance_footer(project: Project, domain: DomainProfile) -> str:
+    """Deterministic provenance + safety disclaimer appended to the brief."""
+    from quorum_backend.config import settings  # local to avoid cycles
+    panel_size = len(project.agents)
+    return (
+        "\n---\n\n"
+        "## Provenance\n\n"
+        f"- Generated: `{utc_now_iso()}`\n"
+        f"- Domain: `{domain.key}` ({domain.name})\n"
+        f"- Project: `{project.id}`\n"
+        f"- LLM provider: `{settings.llm_provider}`\n"
+        f"- Panel: {panel_size}-seat virtual deliberation\n"
+        f"- Disclaimer: This brief is decision support for the human MDT, "
+        "not autonomous medical advice. A credentialed clinician must review "
+        "and sign before any clinical action.\n"
+    )
 

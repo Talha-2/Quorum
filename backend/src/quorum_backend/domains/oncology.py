@@ -13,7 +13,7 @@ guidelines, trials) plus the ``Specialist`` panel that deliberates on it.
 
 from __future__ import annotations
 
-from quorum_backend.domains.base import DomainProfile, RosterMember
+from quorum_backend.domains.base import DomainProfile, ReportSectionSpec, RosterMember
 from quorum_backend.pipeline.models import EdgeType, EntityType, Ontology
 
 # --- Entity types --------------------------------------------------------
@@ -288,6 +288,72 @@ _ROSTER = (
     ),
 )
 
+# --- Tumor Board Brief outline ------------------------------------------
+# Fixed clinical structure: the brief always has these sections, in this
+# order. Section descriptions ground the LLM section-writer in what each
+# section should cover.
+_REPORT_OUTLINE = (
+    ReportSectionSpec(
+        title="Case snapshot",
+        description=(
+            "Concise clinical summary of the case: diagnosis, stage, key "
+            "biomarkers, performance status, and relevant comorbidities. Draw "
+            "from the case knowledge graph and the brief; do not invent "
+            "details the panel did not discuss."
+        ),
+    ),
+    ReportSectionSpec(
+        title="Recommended pathway",
+        description=(
+            "The MDT panel's converged treatment recommendation, the rationale, "
+            "and the guideline support cited during the deliberation. Be "
+            "specific about modality, sequencing, and intent (curative vs "
+            "palliative)."
+        ),
+    ),
+    ReportSectionSpec(
+        title="Alternatives considered and why not",
+        description=(
+            "Other treatment options the panel weighed and the reasoning for "
+            "rejecting each as the primary recommendation. This is the "
+            "documentation gap a real tumor-board note often misses."
+        ),
+    ),
+    ReportSectionSpec(
+        title="Dissenting opinions",
+        description=(
+            "Specialists who disagreed with the primary recommendation and the "
+            "basis for their disagreement, preserved verbatim. If no dissent "
+            "emerged, say so explicitly."
+        ),
+    ),
+    ReportSectionSpec(
+        title="Contraindications and safety flags",
+        description=(
+            "Drug interactions, dose-adjustment concerns, and contraindications "
+            "raised against the patient's comorbidities or prior treatments — "
+            "especially anything the clinical pharmacist flagged."
+        ),
+    ),
+    ReportSectionSpec(
+        title="Clinical trial eligibility",
+        description=(
+            "Open clinical trials the case may be eligible for, matched on "
+            "diagnosis, stage, and biomarkers, with any limiting factors. If "
+            "no trials were surfaced, say so."
+        ),
+    ),
+    ReportSectionSpec(
+        title="Open questions for the human board",
+        description=(
+            "Questions or judgment calls the virtual panel could not resolve "
+            "and that the human board should decide. These are the items the "
+            "MDT meeting time should be spent on."
+        ),
+    ),
+)
+
+
 ONCOLOGY_MDT_DOMAIN = DomainProfile(
     key="oncology_mdt",
     name="Oncology MDT (tumor board)",
@@ -299,4 +365,20 @@ ONCOLOGY_MDT_DOMAIN = DomainProfile(
     ),
     fixed_ontology=ONCOLOGY_MDT_ONTOLOGY,
     fixed_agent_roster=_ROSTER,
+    fixed_report_outline=_REPORT_OUTLINE,
+    report_title_template="Tumor Board Brief — {project_title}",
+    report_summary=(
+        "Virtual MDT deliberation prepared for the human tumor board. "
+        "Decision support — not autonomous medical advice."
+    ),
+    report_section_system_prompt=(
+        "You are writing one section of a Tumor Board Brief produced by a "
+        "virtual multidisciplinary panel. Write in clinical, factual prose, "
+        "without exaggeration or speculation. Quote specialist agents verbatim "
+        "with `>` blockquote syntax where their reasoning supports a point. "
+        "Do not invent clinical details that the deliberation did not produce. "
+        "This brief supports — it does not replace — the human board's "
+        "decision. Output 200-400 words of markdown body — no headings."
+    ),
+    report_provenance_footer=True,
 )
