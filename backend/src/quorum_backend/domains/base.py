@@ -3,7 +3,7 @@ Domain profiles.
 
 A :class:`DomainProfile` specializes the generic Quorum pipeline for one
 application area. It is the extension point that turns the domain-agnostic
-engine into a focused product (e.g. an oncology tumor board).
+engine into a focused product (e.g. an engineering RFC reviewer).
 
 Phase 1 wires one capability: a fixed ontology. When a domain supplies one,
 stage 01 applies it verbatim instead of asking the LLM to invent a schema —
@@ -25,8 +25,9 @@ from quorum_backend.pipeline.models import Ontology
 class RosterMember:
     """One member of a domain's fixed agent panel.
 
-    For a clinical domain the panel is a standing roster (the MDT specialists),
-    not entities extracted from the case. A roster member is turned into an
+    For a specialized domain (e.g. engineering RFC review) the panel is a
+    standing roster — the reviewer seats — not entities extracted from the
+    brief. A roster member is turned into an
     :class:`~quorum_backend.pipeline.models.AgentProfile` deterministically —
     no LLM call — which keeps the panel reproducible and auditable.
     """
@@ -68,7 +69,7 @@ class DomainProfile:
     """Configuration that specializes the pipeline for one application area."""
 
     key: str
-    """Stable identifier persisted on the project (e.g. ``"oncology_mdt"``)."""
+    """Stable identifier persisted on the project (e.g. ``"engineering_rfc"``)."""
 
     name: str
     """Human-readable name shown in the UI."""
@@ -96,6 +97,10 @@ class DomainProfile:
 
     report_provenance_footer: bool = False
     """Append a deterministic provenance/disclaimer footer to the markdown."""
+
+    report_provenance_disclaimer: Optional[str] = None
+    """Domain-specific disclaimer line for the footer. Falls back to a
+    generic 'decision support, not a substitute for human judgment' line."""
 
     @property
     def uses_fixed_ontology(self) -> bool:

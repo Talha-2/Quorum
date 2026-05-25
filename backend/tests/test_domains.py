@@ -1,4 +1,4 @@
-"""Tests for the domain abstraction (Phase 1 foundation)."""
+"""Tests for the domain abstraction and the engineering_rfc domain."""
 
 import os
 import shutil
@@ -39,35 +39,40 @@ def test_empty_key_resolves_to_default():
     assert get_domain("").key == DEFAULT_DOMAIN_KEY
 
 
-def test_oncology_domain_has_fixed_ontology():
-    onc = get_domain("oncology_mdt")
-    assert onc.uses_fixed_ontology is True
-    assert onc.fixed_ontology is not None
-    assert len(onc.fixed_ontology.entity_types) == 10
-    names = {e.name for e in onc.fixed_ontology.entity_types}
-    assert {"Patient", "CancerDiagnosis", "Specialist"}.issubset(names)
-    # Patient and Specialist are the speaker-capable (individual) types.
-    individuals = {e.name for e in onc.fixed_ontology.entity_types if e.is_individual}
-    assert individuals == {"Patient", "Specialist"}
+def test_engineering_rfc_domain_has_fixed_ontology():
+    rfc = get_domain("engineering_rfc")
+    assert rfc.uses_fixed_ontology is True
+    assert rfc.fixed_ontology is not None
+    assert len(rfc.fixed_ontology.entity_types) == 10
+    names = {e.name for e in rfc.fixed_ontology.entity_types}
+    assert {"Decision", "Alternative", "Tradeoff", "Reviewer"}.issubset(names)
+    # Reviewer is the only speaker-capable (individual) entity.
+    individuals = {e.name for e in rfc.fixed_ontology.entity_types if e.is_individual}
+    assert individuals == {"Reviewer"}
     # Every edge type references known entity types.
-    for edge in onc.fixed_ontology.edge_types:
+    for edge in rfc.fixed_ontology.edge_types:
         for src, tgt in edge.source_targets:
             assert src in names and tgt in names
 
 
-def test_oncology_domain_has_full_mdt_roster():
-    onc = get_domain("oncology_mdt")
-    assert onc.uses_fixed_roster is True
-    roster = onc.fixed_agent_roster
-    assert len(roster) == 10
+def test_engineering_rfc_domain_has_reviewer_roster():
+    rfc = get_domain("engineering_rfc")
+    assert rfc.uses_fixed_roster is True
+    roster = rfc.fixed_agent_roster
+    assert len(roster) == 7
     roles = {m.role for m in roster}
-    assert {"Medical Oncologist", "Pathologist", "Patient Advocate"}.issubset(roles)
+    assert {
+        "Principal Engineer",
+        "Reliability Engineer",
+        "Security Engineer",
+        "Skeptic",
+    }.issubset(roles)
     for member in roster:
         assert member.role and member.persona and member.mandate
 
 
 def test_build_roster_agents_is_deterministic():
-    roster = get_domain("oncology_mdt").fixed_agent_roster
+    roster = get_domain("engineering_rfc").fixed_agent_roster
     agents = build_roster_agents(roster)
     assert len(agents) == len(roster)
     for agent, member in zip(agents, roster):
@@ -77,6 +82,15 @@ def test_build_roster_agents_is_deterministic():
         assert member.mandate in agent.persona  # mandate appended to persona
 
 
+def test_engineering_rfc_domain_full_shape():
+    rfc = get_domain("engineering_rfc")
+    assert rfc.uses_fixed_ontology and rfc.uses_fixed_roster and rfc.uses_fixed_report
+    section_titles = [s.title for s in rfc.fixed_report_outline]
+    assert section_titles[0] == "Context"
+    assert "Why not the alternatives" in section_titles
+    assert section_titles[-1] == "Follow-ups and open questions"
+
+
 def test_unknown_domain_raises():
     try:
         get_domain("not_a_domain")
@@ -84,57 +98,14 @@ def test_unknown_domain_raises():
     except KeyError:
         pass
     assert is_valid_domain("not_a_domain") is False
-    assert is_valid_domain("oncology_mdt") is True
+    assert is_valid_domain("engineering_rfc") is True
     assert is_valid_domain(None) is True
 
 
 def test_list_domains_is_default_first():
     domains = list_domains()
     assert domains[0].key == DEFAULT_DOMAIN_KEY
-    assert {"general", "oncology_mdt", "quorum_dx_education"}.issubset(
-        {d.key for d in domains}
-    )
-
-
-def test_dx_education_domain_full_shape():
-    dx = get_domain("quorum_dx_education")
-    assert dx.uses_fixed_ontology and dx.uses_fixed_roster and dx.uses_fixed_report
-    assert len(dx.fixed_ontology.entity_types) == 10
-    roles = {m.role for m in dx.fixed_agent_roster}
-    # The reasoning archetypes that drive the debate.
-    assert {"Generalist / Internist", "Skeptic", "Can't-Miss Agent", "Bayesian"}.issubset(roles)
-    section_titles = [s.title for s in dx.fixed_report_outline]
-    assert section_titles[0] == "Presentation summary"
-    assert "Cognitive-bias flags" in section_titles
-
-
-def test_dx_education_full_pipeline_emits_ddx_brief():
-    test_dir = _make_test_dir()
-    _reset_state(test_dir)
-    try:
-        with TestClient(main.app) as client:
-            project_id = client.post(
-                "/api/projects",
-                json={
-                    "brief": "55-year-old with sudden tearing back pain.",
-                    "domain": "quorum_dx_education",
-                    "title": "Case vignette",
-                },
-            ).json()["id"]
-            for _ in range(7):
-                r = client.post(
-                    f"/api/projects/{project_id}/pipeline/run-next",
-                    json={"rounds": 2, "agents_per_round": 3},
-                )
-                assert r.status_code == 200, r.text
-            report = client.get(f"/api/projects/{project_id}").json()["report"]
-            assert report["title"].startswith("Differential Diagnosis Brief")
-            section_titles = [s["title"] for s in report["sections"]]
-            assert section_titles[0] == "Presentation summary"
-            assert section_titles[-1] == "Open questions and teaching points"
-            assert "education only" in report["markdown"].lower()
-    finally:
-        shutil.rmtree(test_dir, ignore_errors=True)
+    assert {"general", "engineering_rfc"}.issubset({d.key for d in domains})
 
 
 # --- API integration tests ----------------------------------------------
@@ -148,9 +119,9 @@ def test_domains_endpoint():
             assert resp.status_code == 200
             domains = resp.json()["domains"]
             keys = {d["key"] for d in domains}
-            assert {"general", "oncology_mdt"}.issubset(keys)
-            onc = next(d for d in domains if d["key"] == "oncology_mdt")
-            assert onc["fixed_ontology"] is True
+            assert {"general", "engineering_rfc"}.issubset(keys)
+            rfc = next(d for d in domains if d["key"] == "engineering_rfc")
+            assert rfc["fixed_ontology"] is True
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
 
@@ -181,8 +152,8 @@ def test_create_project_with_unknown_domain_is_rejected():
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
-def test_oncology_project_uses_fixed_ontology():
-    """Stage 01 applies the fixed oncology ontology verbatim, no LLM call."""
+def test_engineering_rfc_project_uses_fixed_ontology():
+    """Stage 01 applies the fixed engineering RFC ontology verbatim, no LLM call."""
     test_dir = _make_test_dir()
     _reset_state(test_dir)
     try:
@@ -190,13 +161,13 @@ def test_oncology_project_uses_fixed_ontology():
             create_resp = client.post(
                 "/api/projects",
                 json={
-                    "brief": "68-year-old with stage IIIA NSCLC, EGFR exon 19 deletion.",
-                    "domain": "oncology_mdt",
+                    "brief": "Adopt PostgreSQL over MongoDB for the orders service.",
+                    "domain": "engineering_rfc",
                 },
             )
             assert create_resp.status_code == 200
             project_id = create_resp.json()["id"]
-            assert create_resp.json()["domain"] == "oncology_mdt"
+            assert create_resp.json()["domain"] == "engineering_rfc"
 
             ontology_resp = client.post(
                 f"/api/projects/{project_id}/graph/ontology/generate", json={}
@@ -204,18 +175,15 @@ def test_oncology_project_uses_fixed_ontology():
             assert ontology_resp.status_code == 200
             ontology = ontology_resp.json()["ontology"]
             entity_names = {e["name"] for e in ontology["entity_types"]}
-            # The fixed schema, not an LLM-invented one.
-            assert {"Patient", "CancerDiagnosis", "TumorStaging", "Specialist"}.issubset(
-                entity_names
-            )
+            assert {"Decision", "Alternative", "Tradeoff", "Reviewer"}.issubset(entity_names)
             edge_names = {e["name"] for e in ontology["edge_types"]}
-            assert "HAS_DIAGNOSIS" in edge_names
+            assert "CONSIDERS" in edge_names and "INVOLVES_TRADEOFF" in edge_names
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
-def test_oncology_report_is_a_tumor_board_brief():
-    """Stage 07 emits the fixed Tumor Board Brief shape, not the generic outline."""
+def test_engineering_rfc_report_is_an_adr():
+    """Stage 07 emits the fixed ADR shape, not the generic outline."""
     test_dir = _make_test_dir()
     _reset_state(test_dir)
     try:
@@ -223,9 +191,9 @@ def test_oncology_report_is_a_tumor_board_brief():
             project_id = client.post(
                 "/api/projects",
                 json={
-                    "brief": "Newly diagnosed stage IIA case with HER2+ biomarker.",
-                    "domain": "oncology_mdt",
-                    "title": "HER2+ stage IIA case",
+                    "brief": "Carve the billing path out of the monolith.",
+                    "domain": "engineering_rfc",
+                    "title": "Billing service extraction",
                 },
             ).json()["id"]
 
@@ -238,30 +206,31 @@ def test_oncology_report_is_a_tumor_board_brief():
 
             report = client.get(f"/api/projects/{project_id}").json()["report"]
 
-            assert report["title"].startswith("Tumor Board Brief")
+            assert report["title"].startswith("ADR")
             assert "decision support" in report["summary"].lower()
 
             section_titles = [s["title"] for s in report["sections"]]
             assert section_titles == [
-                "Case snapshot",
-                "Recommended pathway",
-                "Alternatives considered and why not",
-                "Dissenting opinions",
-                "Contraindications and safety flags",
-                "Clinical trial eligibility",
-                "Open questions for the human board",
+                "Context",
+                "Decision drivers",
+                "Alternatives considered",
+                "Recommended decision",
+                "Why not the alternatives",
+                "Dissents",
+                "Consequences and risks",
+                "Follow-ups and open questions",
             ]
 
             md = report["markdown"]
             assert "## Provenance" in md
             assert "Disclaimer" in md
-            assert "decision support" in md.lower()
+            assert "engineering team owns" in md.lower()
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
-def test_oncology_pipeline_convenes_fixed_panel_end_to_end():
-    """The full specialized pipeline runs and convenes the 10-seat MDT panel."""
+def test_engineering_rfc_pipeline_convenes_fixed_panel_end_to_end():
+    """The full specialized pipeline runs and convenes the 7-seat reviewer panel."""
     test_dir = _make_test_dir()
     _reset_state(test_dir)
     try:
@@ -269,12 +238,11 @@ def test_oncology_pipeline_convenes_fixed_panel_end_to_end():
             project_id = client.post(
                 "/api/projects",
                 json={
-                    "brief": "72-year-old, stage IIA colon cancer, well-controlled diabetes.",
-                    "domain": "oncology_mdt",
+                    "brief": "Pick the next observability stack.",
+                    "domain": "engineering_rfc",
                 },
             ).json()["id"]
 
-            # Drive every stage through to the report.
             for expected in [
                 "ontology_generated",
                 "graph_completed",
@@ -293,9 +261,9 @@ def test_oncology_pipeline_convenes_fixed_panel_end_to_end():
 
             final = client.get(f"/api/projects/{project_id}").json()
             agents = final["agents"]
-            assert len(agents) == 10
+            assert len(agents) == 7
             assert all(a["source_entity_type"] == "Specialist" for a in agents)
-            assert "Medical Oncologist" in {a["role"] for a in agents}
+            assert "Principal Engineer" in {a["role"] for a in agents}
             assert final["report"]["sections"]
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)

@@ -1,4 +1,4 @@
-"""Tests for the evaluation harness (Phase 2)."""
+"""Tests for the evaluation harness."""
 
 import asyncio
 import os
@@ -6,13 +6,12 @@ import os
 os.environ.setdefault("LLM_PROVIDER", "local")
 
 from quorum_backend.eval import CASES, EvalCase, run_case, run_suite, score_report
-from quorum_backend.eval.scoring import Score
 
 
 def test_score_report_passes_when_rubric_matches():
     case = EvalCase(
         name="synthetic",
-        domain="oncology_mdt",
+        domain="engineering_rfc",
         brief="x",
         expected_section_titles=["A", "B"],
         required_markdown_terms=["disclaimer"],
@@ -35,7 +34,7 @@ def test_score_report_passes_when_rubric_matches():
 def test_score_report_flags_section_order_mismatch():
     case = EvalCase(
         name="bad",
-        domain="oncology_mdt",
+        domain="engineering_rfc",
         brief="x",
         expected_section_titles=["A", "B"],
         require_provenance=False,
@@ -46,15 +45,15 @@ def test_score_report_flags_section_order_mismatch():
     assert s.checks["section_order"] is False
 
 
-def test_run_case_for_oncology_brief_passes_rubric():
-    case = next(c for c in CASES if c.name == "oncology_her2_iia")
+def test_run_case_for_engineering_rfc_brief_passes_rubric():
+    case = next(c for c in CASES if c.name == "rfc_postgres_over_mongo")
     result = asyncio.run(run_case(case))
     assert result.error is None
     assert result.score.passed, result.score.notes
 
 
-def test_run_case_for_dx_education_brief_passes_rubric():
-    case = next(c for c in CASES if c.name == "dx_thunderclap_headache")
+def test_run_case_for_second_engineering_rfc_brief_passes_rubric():
+    case = next(c for c in CASES if c.name == "rfc_split_monolith")
     result = asyncio.run(run_case(case))
     assert result.error is None
     assert result.score.passed, result.score.notes
@@ -63,7 +62,5 @@ def test_run_case_for_dx_education_brief_passes_rubric():
 def test_run_suite_passes_every_curated_case():
     results = asyncio.run(run_suite())
     failures = [r for r in results if not r.score.passed]
-    assert not failures, [
-        f"{r.case.name}: {r.score.notes}" for r in failures
-    ]
+    assert not failures, [f"{r.case.name}: {r.score.notes}" for r in failures]
     assert len(results) == len(CASES)

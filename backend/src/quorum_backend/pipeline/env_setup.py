@@ -2,8 +2,8 @@
 Environment setup — instantiate the agent panel for the simulation.
 
 For the general domain there is one agent per speaker-capable entity in the
-knowledge graph. For a domain with a fixed roster (e.g. the oncology MDT) the
-panel is built deterministically from that roster instead.
+knowledge graph. For a domain with a fixed roster (e.g. the engineering RFC
+reviewer panel) the panel is built deterministically from that roster instead.
 """
 
 from __future__ import annotations

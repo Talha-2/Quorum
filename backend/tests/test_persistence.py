@@ -30,7 +30,7 @@ def _reset_state(test_dir: Path):
 
 def test_project_dict_round_trip_preserves_fields():
     project = Project(id="proj_test", title="Round trip", brief="A brief")
-    project.domain = "oncology_mdt"
+    project.domain = "engineering_rfc"
     project.transition(ProjectState.ONTOLOGY_GENERATED, "ontology ready")
 
     restored = project_from_dict(project_to_dict(project))
@@ -38,7 +38,7 @@ def test_project_dict_round_trip_preserves_fields():
     assert restored.id == project.id
     assert restored.title == project.title
     assert restored.brief == project.brief
-    assert restored.domain == "oncology_mdt"
+    assert restored.domain == "engineering_rfc"
     assert restored.state == ProjectState.ONTOLOGY_GENERATED
     assert isinstance(restored.state, ProjectState)
     assert len(restored.events) == len(project.events)
@@ -76,7 +76,7 @@ def test_project_survives_a_simulated_restart():
                 "/api/projects",
                 json={
                     "brief": "Stage IIA case for review.",
-                    "domain": "oncology_mdt",
+                    "domain": "engineering_rfc",
                 },
             ).json()["id"]
             client.post(f"/api/projects/{project_id}/graph/ontology/generate", json={})
@@ -91,8 +91,8 @@ def test_project_survives_a_simulated_restart():
             resp = client.get(f"/api/projects/{project_id}")
             assert resp.status_code == 200
             recovered = resp.json()
-            assert recovered["domain"] == "oncology_mdt"
+            assert recovered["domain"] == "engineering_rfc"
             assert recovered["ontology"] is not None
-            assert recovered["agent_count"] == 10
+            assert recovered["agent_count"] == 7  # engineering_rfc reviewer panel
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)
