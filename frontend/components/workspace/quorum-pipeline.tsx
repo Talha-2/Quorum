@@ -560,7 +560,7 @@ export default function QuorumPipeline() {
                     <textarea
                       value={briefDraft}
                       onChange={(e) => setBriefDraft(e.target.value)}
-                      placeholder="What should the swarm debate? E.g. 'A 64-year-old with HER2+ stage IIA disease' (oncology MDT) or 'Should we adopt the new workflow next quarter?' (general)"
+                      placeholder="What decision should the panel debate? E.g. 'Adopt PostgreSQL over MongoDB for the orders service' (engineering RFC) or 'Should we adopt the new coordination workflow next quarter?' (general)"
                       className="input min-h-[120px] resize-y"
                       rows={4}
                     />

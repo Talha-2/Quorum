@@ -11,9 +11,6 @@ import {
   Workflow,
   Bot,
   Briefcase,
-  Building2,
-  Scale,
-  FlaskConical,
   HelpCircle,
   FileText,
   Upload,
@@ -159,32 +156,32 @@ const pipelineStages = [
 // ============================================
 const useCases = [
   {
-    icon: FlaskConical,
-    label: 'Oncology MDT',
-    title: 'Prepare the tumor board before it meets.',
+    icon: GitBranch,
+    label: 'Architecture decisions',
+    title: 'Adopt PostgreSQL over MongoDB?',
     body:
-      'Feed in a de-identified case packet. A standing 10-seat panel — medical/radiation/surgical oncology, pathology, radiology, palliative care, pharmacy, navigation, trials, patient advocate — deliberates and emits a Tumor Board Brief: recommended pathway, alternatives considered, dissents, contraindications, trial eligibility. Decision support, not autonomous diagnosis.',
+      'Drop in the design doc and the reviewer panel debates it the way an RFC review should be done — principal eng on architectural fit, SRE on operational risk, security on threat surface, cost on TCO, product on user intent, tech lead on team velocity, skeptic on anchoring. Output: a Markdown ADR with the recommended decision, why not each alternative, and the dissents preserved verbatim.',
   },
   {
-    icon: Building2,
-    label: 'Quorum Dx (education)',
-    title: 'Train clinical reasoning, not patient care.',
+    icon: Workflow,
+    label: 'Service decomposition',
+    title: 'Split the monolith or harden the seam?',
     body:
-      'A diagnostic-reasoning gym for students and residents. A panel of reasoning archetypes — generalist, organ specialists, skeptic, epidemiologist, can\'t-miss, Bayesian — debates the differential on a synthetic vignette and writes a Differential Diagnosis Brief with cognitive-bias flags.',
+      'Carving a service out of a monolith has a dozen second-order effects. The panel surfaces them up front — blast radius, deploy gating, on-call burden, PCI scope, hidden coupling — so the ADR captures the alternatives you considered, not just the one you shipped.',
+  },
+  {
+    icon: Layers,
+    label: 'Build vs. buy',
+    title: 'Self-host the observability stack or pay Datadog?',
+    body:
+      'Cost and operational complexity argue against each other; security has its own constraints; the team you have today is not the team you have at 10x. The panel makes those forces explicit so the call is reproducible.',
   },
   {
     icon: Briefcase,
-    label: 'Strategy',
-    title: 'Should we ship this in Q2?',
+    label: 'General mode',
+    title: 'Anything else worth deliberating.',
     body:
-      'Upload your roadmap PDF, write the question, and watch a panel of stakeholders — risk officers, founders, engineers, customer advocates — debate the trade-offs before they bite you in standup.',
-  },
-  {
-    icon: Scale,
-    label: 'Policy',
-    title: 'Will this regulation hold up?',
-    body:
-      'Upload the draft, let Quorum extract every concrete actor it touches — agencies, courts, advocacy groups, affected communities — and surface the constituencies that will resist and why.',
+      'The engine is domain-agnostic. The general mode lets the LLM design a stakeholder panel for any brief — strategy, policy, hiring, vendor selection — when there is no fixed reviewer roster to apply.',
   },
 ]
 
@@ -282,13 +279,15 @@ export default function LandingPage() {
                 variants={staggerItem}
                 className="mt-6 max-w-xl text-lg leading-relaxed text-[var(--muted)]"
               >
-                A multi-stakeholder deliberation engine. Out of the box: a
-                <span className="text-[var(--ink)]"> virtual tumor board </span>
-                that prepares a Tumor Board Brief before the human MDT meets,
-                a <span className="text-[var(--ink)]">diagnostic-reasoning gym</span>{' '}
-                for clinical education, and a general mode for any
-                multi-stakeholder decision. Self-hosted, with the LLM provider
-                of your choice.
+                A multi-stakeholder deliberation engine for engineering
+                decisions. Drop in an RFC or design doc and a fixed reviewer
+                panel — <span className="text-[var(--ink)]">principal eng,
+                SRE, security, cost, product, tech lead, skeptic</span> —
+                debates it and emits an{' '}
+                <span className="text-[var(--ink)]">Architecture Decision
+                Record</span>: recommended decision, alternatives considered,
+                why not each, dissents, consequences. Self-hosted, with the
+                LLM provider of your choice.
               </motion.p>
 
               <motion.div
