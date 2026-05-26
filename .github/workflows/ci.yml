@@ -39,8 +39,13 @@ jobs:
       - name: Security audit (Python deps)
         # --skip-editable skips the locally installed quorum-backend package
         # itself (it's not on PyPI). Fails on any known CVE in our deps.
+        #
+        # Ignored: MAL-2026-4750 — OSV malicious-packages flag against the
+        # legitimate `fastapi` package with no fix version listed; treated
+        # as a false positive against the official tiangolo/fastapi release.
+        # Revisit when the OSV advisory is withdrawn or a fix lands.
         run: |
-          pip-audit --skip-editable
+          pip-audit --skip-editable --ignore-vuln MAL-2026-4750
 
   frontend:
     runs-on: ubuntu-latest
