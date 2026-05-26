@@ -1,12 +1,12 @@
 ---
 title: Workspace guide
-description: A walkthrough of the Quorum web workspace — projects, the seven-stage pipeline, the live graph, the agent gallery, and the deep interaction chat panel.
+description: A walkthrough of the Quorum web workspace — open an RFC review, watch the reviewer panel deliberate, and download the ADR.
 ---
 
 The Quorum workspace lives at [`/workspace`](/workspace). It's a single-page
 React app with three top-level views (Workbench, Graph, Agents) and a system
-dashboard pinned to the bottom. This guide walks through one full simulation
-end to end.
+dashboard pinned to the bottom. This guide walks through one full RFC review
+end to end — the default and primary use case.
 
 ## Workspace screenshots
 
@@ -44,8 +44,8 @@ detail panel and direct chat entry points.*
 ## 1. Open the workspace
 
 Navigate to `http://localhost:3000/workspace`. On first visit you'll see the
-**Spin up a swarm** form. The form is the only thing on screen until you
-launch your first project.
+**Review an RFC** form, defaulted to the engineering RFC domain. The form is
+the only thing on screen until you launch your first project.
 
 The header has three view tabs:
 
@@ -61,24 +61,33 @@ You can switch views at any time once a project is initialised.
 
 The form has four fields:
 
-- **Brief** (required) — the question you want the swarm to debate. Be
-  specific. The agents will reference your exact wording back to you.
-- **Constraints** (optional) — hard limits the swarm should respect.
-  One per line.
-- **Reality seeds** (optional) — drag PDF, Markdown, or text files onto the
-  drop zone. Up to 5 files, 8 MB each. The text is extracted and used as
-  context for the ontology and graph.
+- **Decision** (required) — the architectural choice you want reviewed. Be
+  specific: name the alternatives, the constraints, and the system context.
+  The reviewers will reference your exact wording back to you.
+- **Domain** (optional) — defaults to **Engineering RFC / ADR**. Switch to
+  **General reasoning (fallback)** for non-engineering deliberation.
+- **Constraints** (optional) — hard limits the panel should respect, one
+  per line.
+- **Reality seeds** (optional) — drag PDF, Markdown, or text files of your
+  existing design doc onto the drop zone. Up to 5 files, 8 MB each. The
+  text is extracted and grounded in the RFC graph.
 
-**Good briefs:**
+**Good RFC decisions:**
 
-- *"Should we ship the new payments API in Q2 if security review slips by 2 weeks?"*
-- *"Is it worth replacing our internal PostgreSQL cluster with a managed Aurora deployment?"*
-- *"We have $400k and 3 engineers. Should we build the AI feature or hire a senior PM?"*
+- *"Adopt PostgreSQL over MongoDB for the orders service. Constraints:
+  1-quarter migration budget, no downtime windows longer than 5 minutes,
+  analytics expects relational joins."*
+- *"Carve the billing path out of the monolith. Alternatives: extract the
+  whole billing module, extract only the invoice generator first, or
+  leave it in with a stricter module boundary. PCI scope must not expand."*
+- *"Pick the next observability stack. Datadog vs. Grafana Cloud vs.
+  continuing self-hosted. PII must not leave the VPC; data-egress cost
+  matters."*
 
-**Vague briefs to avoid:**
+**Vague decisions to avoid:**
 
-- "AI strategy"
-- "Should we do it"
+- "Microservices?"
+- "Should we adopt Kubernetes"
 
 Click **Create project**. The form collapses and the workbench layout appears.
 

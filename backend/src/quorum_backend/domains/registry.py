@@ -14,10 +14,10 @@ from quorum_backend.domains.base import DomainProfile
 from quorum_backend.domains.engineering_rfc import ENGINEERING_RFC_DOMAIN
 from quorum_backend.domains.general import GENERAL_DOMAIN
 
-DEFAULT_DOMAIN_KEY = GENERAL_DOMAIN.key
+DEFAULT_DOMAIN_KEY = ENGINEERING_RFC_DOMAIN.key
 
 _REGISTRY: Dict[str, DomainProfile] = {
-    d.key: d for d in (GENERAL_DOMAIN, ENGINEERING_RFC_DOMAIN)
+    d.key: d for d in (ENGINEERING_RFC_DOMAIN, GENERAL_DOMAIN)
 }
 
 

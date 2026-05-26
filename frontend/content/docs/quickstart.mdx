@@ -1,11 +1,12 @@
 ---
 title: Quickstart
-description: Install Quorum and run your first multi-agent simulation in five minutes.
+description: Install Quorum and review your first RFC in five minutes — end up with a Markdown ADR.
 ---
 
-This guide gets you from zero to a finished simulation report in roughly five
-minutes. It assumes you have Python 3.11+, Node.js 20+, and an LLM API key
-(Google Gemini works free; Azure AI Foundry and Anthropic Claude work paid).
+This guide gets you from zero to a finished **Architecture Decision Record**
+in roughly five minutes. It assumes you have Python 3.11+, Node.js 20+, and
+an LLM API key (Google Gemini works free; Azure AI Foundry and Anthropic
+Claude work paid).
 
 ## 1. Install
 
@@ -87,42 +88,53 @@ npm run dev
 
 The workspace will be available at `http://localhost:3000`.
 
-## 4. Run your first simulation
+## 4. Review your first RFC
 
-1. Open `http://localhost:3000/workspace`.
-2. Optionally drag a PDF, Markdown, or text file onto the **Reality seeds**
-   drop zone. Quorum will extract its content and use it as context for the
-   ontology.
-3. Enter a brief — for example:
-   *"Should we replace our PostgreSQL cluster with Aurora before the Q3 launch?"*
+1. Open `http://localhost:3000/workspace`. The form defaults to the
+   **engineering RFC** domain.
+2. Optionally drag your existing design doc (PDF, Markdown, or text) onto the
+   **Reality seeds** drop zone. Quorum will extract its content and use it
+   as the ground truth for the deliberation.
+3. Enter the decision — for example:
+   *"Adopt PostgreSQL over MongoDB for the orders service. Constraints:
+   1-quarter migration budget, no downtime windows longer than 5 minutes,
+   existing analytics pipeline expects relational joins."*
 4. Click **Create project**.
 
 Then run the stages in order:
 
-- **Stage 01 — Generate ontology** creates an entity + edge type schema
-  specific to your brief
-- **Stage 02 — Build knowledge graph** extracts concrete entities and
-  relations from the brief and any uploaded documents
-- **Stage 03 — Generate agent personas** instantiates one AI agent per
-  speaker-capable entity in the graph
-- **Stage 04 — Generate simulation config** designs the per-agent activity
-  profile and platform recommendation algorithms
-- **Stage 05 — Generate activation plan** creates the narrative direction,
-  hot topics, and starter posts
-- **Stage 06 — Start simulation** runs the round-by-round debate
-- **Stage 07 — Generate report** plans an outline and writes a
-  multi-section markdown report
+- **Stage 01 — Apply RFC ontology** pins the fixed engineering schema
+  (Decision, Alternative, Tradeoff, Constraint, Component, FailureMode,
+  Stakeholder, Reviewer). No LLM call — deterministic.
+- **Stage 02 — Build the RFC graph** extracts decisions, alternatives,
+  trade-offs, and stakeholders from your decision statement and any
+  uploaded design docs.
+- **Stage 03 — Convene the reviewer panel** deterministically instantiates
+  the seven-seat standing roster: Principal Engineer, Reliability,
+  Security, Cost, Product, Tech Lead, Skeptic.
+- **Stage 04 — Calibrate the debate** assigns each reviewer to its
+  mandate so security speaks on threats and cost speaks on TCO.
+- **Stage 05 — Open the review** seeds the panel with the decision and
+  the trade-offs the brief exposes.
+- **Stage 06 — Run the deliberation** runs the round-by-round debate. The
+  skeptic attacks the leading option; dissents are preserved verbatim.
+- **Stage 07 — Emit the ADR** plans the fixed eight-section outline and
+  writes the Architecture Decision Record (context, drivers, alternatives
+  considered, recommended decision, why-not each, dissents, consequences,
+  follow-ups).
 
-You can drag nodes on the graph, click any agent to see its full profile,
-and download the final report as a Markdown file.
+You can drag nodes on the RFC graph, click any reviewer to see its full
+profile and mandate, and download the final ADR as a Markdown file.
 
 ## 5. What just happened
 
-You ran the seven-stage Quorum pipeline end-to-end. To understand what each
-stage did, read [Concepts](/docs/concepts) and the
-[Pipeline stages](/docs/pipeline-stages) reference. To call the same
-pipeline programmatically without the web UI, see the
-[API reference](/docs/api-reference).
+You ran the seven-stage Quorum pipeline end-to-end on the **engineering
+RFC** domain. To understand what each stage did, read
+[Concepts](/docs/concepts) and the [Pipeline stages](/docs/pipeline-stages)
+reference. To call the same pipeline programmatically without the web UI,
+see the [API reference](/docs/api-reference). To register a different
+reviewer roster for your team, see
+[Agent architecture](/docs/agent-architecture).
 
 ## Common first-run issues
 

@@ -94,7 +94,8 @@ export default function QuorumPipeline() {
   const [project, setProject] = useState<Project | null>(null)
   const [briefDraft, setBriefDraft] = useState('')
   const [constraintsDraft, setConstraintsDraft] = useState('')
-  const [domainDraft, setDomainDraft] = useState<string>('general')
+  // Default to the engineering RFC reviewer panel — the platform's flagship use case.
+  const [domainDraft, setDomainDraft] = useState<string>('engineering_rfc')
   const [availableDomains, setAvailableDomains] = useState<
     { key: string; name: string; description: string }[]
   >([])
@@ -537,12 +538,13 @@ export default function QuorumPipeline() {
                     <span className="label-mono">New project</span>
                   </div>
                   <h2 className="font-display text-2xl font-medium tracking-tight text-[var(--ink)]">
-                    Spin up a swarm
+                    Review an RFC
                   </h2>
                   <p className="mt-2 text-sm text-[var(--muted)]">
-                    Describe the topic. Quorum will design an ontology, build a
-                    knowledge graph, instantiate one agent per real-world entity,
-                    and run a multi-round debate.
+                    Drop in a design doc or describe the decision. A standing
+                    reviewer panel — principal eng, SRE, security, cost, product,
+                    tech lead, skeptic — debates it and emits an ADR with the
+                    recommended decision, alternatives considered, and dissents.
                   </p>
                 </div>
                 <div className="p-8 space-y-6">
@@ -556,11 +558,11 @@ export default function QuorumPipeline() {
                   ) : (
                     <>
                   <div>
-                    <label className="label-mono mb-2 block">Brief</label>
+                    <label className="label-mono mb-2 block">Decision</label>
                     <textarea
                       value={briefDraft}
                       onChange={(e) => setBriefDraft(e.target.value)}
-                      placeholder="What decision should the panel debate? E.g. 'Adopt PostgreSQL over MongoDB for the orders service' (engineering RFC) or 'Should we adopt the new coordination workflow next quarter?' (general)"
+                      placeholder="What's the decision? E.g. 'Adopt PostgreSQL over MongoDB for the orders service. Constraints: 1-quarter migration budget, no downtime windows longer than 5 minutes, existing analytics pipeline expects relational joins.'"
                       className="input min-h-[120px] resize-y"
                       rows={4}
                     />

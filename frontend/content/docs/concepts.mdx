@@ -1,17 +1,36 @@
 ---
 title: Concepts
-description: "Core concepts in Quorum: project state, persisted artifacts, stage ordering, and the relationship between graph, agents, activation, simulation, and report generation."
+description: "Core concepts in Quorum: project state, persisted artifacts, stage ordering, and the relationship between the RFC graph, reviewer panel, activation, deliberation, and ADR generation."
 ---
 
 ## Mental model
 
 Quorum is not a chatbot with extra prompt tricks. It is a project-based
-pipeline that accumulates typed artifacts over time.
+pipeline that accumulates typed artifacts over time, specialized for one
+flagship use case — **engineering RFC review**.
 
-The central object is a **Project**. Every stage reads from the project, writes
-back to the project, and persists the updated state. That is why the system is
-inspectable: you can fetch the project after any stage and see exactly what has
-already been produced.
+The central object is a **Project**. Every stage reads from the project,
+writes back to the project, and persists the updated state. That is why the
+system is inspectable: you can fetch the project after any stage and see
+exactly what has already been produced.
+
+## Domains
+
+A **Domain** specializes the pipeline for one application area. Two domains
+ship today:
+
+- **`engineering_rfc`** (default) — the platform's flagship. Pins a fixed
+  10-type RFC ontology, a 7-seat reviewer roster (Principal Engineer,
+  Reliability, Security, Cost, Product, Tech Lead, Skeptic), and an
+  8-section ADR outline. Stages 01, 03, and 07 use the fixed artifacts
+  instead of asking the LLM to invent them.
+- **`general`** (fallback) — domain-agnostic. The LLM designs the ontology
+  and the agent panel from the brief. Use this when the engineering RFC
+  reviewer doesn't fit your decision.
+
+Domains are a small extension point — one Python file under
+`backend/src/quorum_backend/domains/`. To register a different reviewer
+roster for your team, see [Agent architecture](/docs/agent-architecture).
 
 ## Core artifacts
 
@@ -19,37 +38,43 @@ already been produced.
 
 The unit of work. A project contains:
 
-- input brief
+- the decision statement (the "brief")
 - optional constraints and signals
-- uploaded source documents
+- uploaded design docs
+- the selected domain
 - stage outputs
 - event log
 - current pipeline state
 
 ### Ontology
 
-A topic-specific schema generated for the current brief. It defines:
+The schema the pipeline extracts against. For `engineering_rfc` it is a
+fixed 10-type schema: `Decision`, `Alternative`, `Tradeoff`, `Constraint`,
+`Component`, `ExternalDependency`, `FailureMode`, `NonGoal`, `Stakeholder`,
+`Reviewer`. For `general`, the LLM designs one per brief.
 
-- `entity_types`
-- `edge_types`
-
-The ontology is designed before the graph so extraction happens against an
+The ontology is applied before the graph so extraction happens against an
 explicit vocabulary instead of uncontrolled free text.
 
 ### Knowledge graph
 
-The graph is the world model for the run.
+The graph is the world model for the deliberation. For an RFC review:
 
-- nodes are concrete entities
-- edges are typed relations between them
+- nodes are decisions, alternatives, trade-offs, constraints, components,
+  failure modes, and stakeholders extracted from the brief and any
+  uploaded design docs
+- edges capture relations like `CONSIDERS`, `INVOLVES_TRADEOFF`,
+  `CONSTRAINED_BY`, `AFFECTS`, `DEPENDS_ON`, `RISKS`
 
 Every downstream stage depends on the graph being coherent.
 
-### Agent profiles
+### Reviewer profiles
 
-Agents are derived from speaker-capable graph entities. Each agent preserves
-its provenance back to the source node, so the UI can connect graph view,
-persona view, and debate transcript.
+For `engineering_rfc`, the seven reviewers are instantiated deterministically
+from the standing roster — same coverage on every RFC. For `general`,
+agents are derived from speaker-capable graph entities. Each reviewer or
+agent preserves its provenance, so the UI can connect graph view, panel
+view, and debate transcript.
 
 ### Simulation parameters
 
@@ -82,7 +107,12 @@ Stage 06 produces the running argument:
 
 ### Report
 
-Stage 07 turns the transcript into a structured markdown document.
+Stage 07 turns the transcript into a structured Markdown document. For
+`engineering_rfc`, the report is an **Architecture Decision Record** with
+a fixed eight-section outline (Context, Decision drivers, Alternatives
+considered, Recommended decision, Why not the alternatives, Dissents,
+Consequences and risks, Follow-ups) plus a provenance footer with a
+clear disclaimer that the engineering team owns the final call.
 
 ## State machine
 

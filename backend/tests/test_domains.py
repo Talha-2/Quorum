@@ -27,9 +27,15 @@ def _reset_state(test_dir: Path):
 
 # --- Registry unit tests -------------------------------------------------
 
-def test_default_domain_has_no_fixed_ontology():
-    general = get_domain(DEFAULT_DOMAIN_KEY)
-    assert general.key == "general"
+def test_default_domain_is_engineering_rfc():
+    default = get_domain(DEFAULT_DOMAIN_KEY)
+    assert default.key == "engineering_rfc"
+    assert default.uses_fixed_ontology is True
+    assert default.uses_fixed_roster is True
+
+
+def test_general_domain_still_available_as_fallback():
+    general = get_domain("general")
     assert general.fixed_ontology is None
     assert general.uses_fixed_ontology is False
 
@@ -105,6 +111,7 @@ def test_unknown_domain_raises():
 def test_list_domains_is_default_first():
     domains = list_domains()
     assert domains[0].key == DEFAULT_DOMAIN_KEY
+    assert domains[0].key == "engineering_rfc"
     assert {"general", "engineering_rfc"}.issubset({d.key for d in domains})
 
 
@@ -126,12 +133,30 @@ def test_domains_endpoint():
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
-def test_create_project_defaults_to_general_domain():
+def test_create_project_defaults_to_engineering_rfc_domain():
     test_dir = _make_test_dir()
     _reset_state(test_dir)
     try:
         with TestClient(main.app) as client:
-            resp = client.post("/api/projects", json={"brief": "Should we ship feature X?"})
+            resp = client.post(
+                "/api/projects",
+                json={"brief": "Adopt PostgreSQL over MongoDB for the orders service."},
+            )
+            assert resp.status_code == 200
+            assert resp.json()["domain"] == "engineering_rfc"
+    finally:
+        shutil.rmtree(test_dir, ignore_errors=True)
+
+
+def test_create_project_can_still_opt_into_general():
+    test_dir = _make_test_dir()
+    _reset_state(test_dir)
+    try:
+        with TestClient(main.app) as client:
+            resp = client.post(
+                "/api/projects",
+                json={"brief": "Strategy brief", "domain": "general"},
+            )
             assert resp.status_code == 200
             assert resp.json()["domain"] == "general"
     finally:

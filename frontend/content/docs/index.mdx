@@ -1,15 +1,19 @@
 ---
 title: Introduction
-description: Quorum is a self-hosted multi-agent reasoning system with a production-oriented sequential pipeline, typed project state, and detailed in-app documentation.
+description: Quorum is a self-hosted multi-agent RFC review platform — drop in a design doc and a standing reviewer panel emits an Architecture Decision Record.
 ---
 
-Quorum turns an open-ended brief into a structured, inspectable multi-agent run.
-You create a project, attach reality-seed documents, step through a strict
-seven-stage pipeline, and finish with a debate transcript, consensus, report,
-and post-run agent chat.
+Quorum convenes a virtual reviewer panel to deliberate on an engineering
+proposal. You create a project, attach your design doc, step through a strict
+seven-stage pipeline, and finish with a structured **Architecture Decision
+Record** (ADR) — recommended decision, alternatives considered, dissents
+preserved verbatim, consequences and follow-ups — plus a debate transcript
+and post-run chat with any reviewer.
 
-This documentation set is the canonical source of truth for the repository.
-The older root-level markdown docs are no longer the product reference.
+The platform's flagship use case is **engineering RFC review**. A `general`
+mode remains for non-engineering deliberation, but every default in the
+product — the workspace placeholder, the example brief, the example ADR —
+assumes you're reviewing an RFC.
 
 ## Flow at a glance
 
@@ -19,63 +23,67 @@ output, and one set of prerequisites enforced by the backend.
 ![Quorum production pipeline flow chart](/docs-images/pipeline-flow.svg)
 
 *Flow chart: project creation and optional uploads feed a strict server-side
-stage sequence from ontology to report.*
+stage sequence from ontology to ADR.*
 
 ## What Quorum does
 
-Quorum is designed for questions that need explicit disagreement, not a single
-compressed answer. The system:
+Quorum is built for engineering decisions where the *rejected* alternatives
+matter as much as the chosen one. The system:
 
-1. Builds a project from a brief and optional source documents.
-2. Generates a topic-specific ontology.
-3. Extracts a typed knowledge graph.
-4. Instantiates one agent per speaker-capable entity.
-5. Generates simulation configuration.
+1. Builds a project from a decision statement and optional design docs.
+2. Applies the fixed engineering RFC ontology (Decision, Alternative,
+   Tradeoff, Constraint, Component, FailureMode, Stakeholder, Reviewer).
+3. Extracts a typed knowledge graph of the decision under review.
+4. Convenes the standing seven-seat reviewer panel — Principal Engineer,
+   Reliability, Security, Cost, Product, Tech Lead, Skeptic.
+5. Generates the deliberation configuration.
 6. Generates an activation plan that seeds the debate.
-7. Runs a structured multi-round simulation.
-8. Produces a report and supports follow-up chat with any agent.
+7. Runs a structured multi-round deliberation, capturing dissents verbatim.
+8. Emits an eight-section ADR and supports follow-up chat with any reviewer.
 
 The pipeline is intentionally sequential. Each stage validates its
 prerequisites, persists its output, and exposes enough intermediate state to
-debug the run without guessing.
+debug a review without guessing.
 
 ## Workspace reference
 
 The production UI is centered on one workspace rather than multiple competing
-surfaces. The workbench keeps the graph, pipeline, and event log visible while
-the project advances one stage at a time.
+surfaces. The workbench keeps the RFC graph, the pipeline, and the event log
+visible while the deliberation advances one stage at a time.
 
 ![Quorum workbench screen reference](/docs-images/workspace-workbench.svg)
 
-*Workbench reference: live graph on the left, stage cards on the right, and
-the event dashboard pinned at the bottom.*
+*Workbench reference: live RFC graph on the left, stage cards on the right,
+event dashboard pinned at the bottom.*
 
 ## Product principles
 
-- **One production path**: the repository now centers on the project-based
-  `/api/projects/*` pipeline. The previous legacy simulation surface has been
-  removed.
-- **Typed artifacts over ad hoc prompts**: ontology, graph, agents, config,
-  activation, transcript, consensus, and report are all persisted project
-  artifacts.
-- **Strict stage ordering**: uploads happen before ontology, activation happens
-  before simulation, and report generation happens only after a completed run.
-- **Offline-verifiable**: the local deterministic LLM provider now understands
-  the production pipeline prompts, so the end-to-end path is testable without a
-  vendor API.
-- **Documentation in the app**: the Fumadocs site under `/docs` is the primary
-  documentation surface and ships with the product.
+- **One specialized use case**: engineering RFC review is the default domain;
+  the platform leans into it across landing copy, workspace defaults, and the
+  reviewer panel.
+- **One production path**: the project-based `/api/projects/*` pipeline. The
+  earlier legacy simulation surface has been removed.
+- **Typed artifacts over ad hoc prompts**: ontology, RFC graph, reviewers,
+  config, activation, transcript, consensus, and ADR are all persisted
+  project artifacts.
+- **Strict stage ordering**: uploads happen before ontology, activation
+  happens before deliberation, and ADR generation happens only after a
+  completed run.
+- **Offline-verifiable**: the local deterministic LLM provider understands
+  the production pipeline prompts, so the end-to-end path is testable without
+  a vendor API.
+- **Documentation in the app**: the Fumadocs site under `/docs` is the
+  primary documentation surface and ships with the product.
 
 ## Reading map
 
 - [Quickstart](/docs/quickstart)
-  Run the stack and complete your first project.
+  Run the stack and review your first RFC.
 - [Architecture](/docs/architecture)
   System boundaries, request flow, persistence, and backend/frontend
   responsibilities.
 - [Agent Architecture](/docs/agent-architecture)
-  How entities become agents, how activation and debate use them, and how to
-  extend the system safely.
+  How the reviewer panel is built and how to extend the roster for your team.
 - [Concepts](/docs/concepts)
   Core data model and the pipeline state machine.
 - [Pipeline Stages](/docs/pipeline-stages)

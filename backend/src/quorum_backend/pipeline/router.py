@@ -14,7 +14,7 @@ from fastapi import APIRouter, File, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from quorum_backend.config import settings
-from quorum_backend.domains import get_domain, is_valid_domain, list_domains
+from quorum_backend.domains import DEFAULT_DOMAIN_KEY, get_domain, is_valid_domain, list_domains
 from quorum_backend.observability import llm_metrics
 from quorum_backend.pipeline import db
 from quorum_backend.pipeline import jobs as job_store
@@ -83,7 +83,9 @@ class CreateProjectRequest(BaseModel):
     brief: str
     constraints: Optional[str] = ""
     signals: Optional[str] = ""
-    domain: Optional[str] = "general"
+    # Default to the engineering RFC reviewer; clients can pick another
+    # registered domain via this field.
+    domain: Optional[str] = "engineering_rfc"
 
 
 class SimulationStartRequest(BaseModel):
@@ -454,7 +456,7 @@ async def create_project(req: CreateProjectRequest):
         if not brief:
             raise HTTPException(status_code=400, detail="brief is required")
 
-        domain_key = (req.domain or "general").strip() or "general"
+        domain_key = (req.domain or DEFAULT_DOMAIN_KEY).strip() or DEFAULT_DOMAIN_KEY
         if not is_valid_domain(domain_key):
             known = ", ".join(d.key for d in list_domains())
             raise HTTPException(
