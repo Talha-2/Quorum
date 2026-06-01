@@ -707,6 +707,24 @@ class LocalDeterministicProvider(LLMProvider):
         }
         return json.dumps(payload)
 
+    def _cross_examination_payload(self, user_message: str) -> str:
+        name_match = re.search(r"YOUR ASSIGNED PERSPECTIVE:\s*(.*?),\s+a\s+(.*?)\.", user_message)
+        agent_name = name_match.group(1).strip() if name_match else "Skeptic"
+        round_match = re.search(r"end of round\s+(\d+)", user_message)
+        round_num = round_match.group(1) if round_match else "?"
+        payload = {
+            "message": (
+                f"{agent_name} is not satisfied with the round-{round_num} leading argument. "
+                "The strongest objection is that the proposed plan rests on an assumption that "
+                "the panel has not defended explicitly: that the next dependency stays under our "
+                "control. Before agreement, surface the alternative that was dismissed too cheaply "
+                "and name the failure mode this plan does not yet address."
+            ),
+            "confidence": 0.7,
+            "stance": "oppose",
+        }
+        return json.dumps(payload)
+
     def _consensus_payload(self) -> str:
         return json.dumps(
             {
@@ -783,6 +801,8 @@ class LocalDeterministicProvider(LLMProvider):
             return self._agent_config_payload(user_message)
         if "debate participant in an academic, scholarly multi-agent simulation" in system_lower:
             return self._agent_turn_payload(user_message)
+        if "designated skeptic" in system_lower or "cross-examination turn" in lower_prompt:
+            return self._cross_examination_payload(user_message)
         if "neutral moderator" in system_lower:
             return self._consensus_payload()
         if "senior research analyst writing a structured prediction report" in system_lower:

@@ -254,6 +254,52 @@ def test_engineering_rfc_report_is_an_adr():
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
+def test_engineering_rfc_full_panel_speaks_and_skeptic_cross_examines():
+    """For engineering_rfc, every reviewer speaks each round and the Skeptic
+    runs a dedicated cross-examination turn after the round's normal turns."""
+    test_dir = _make_test_dir()
+    _reset_state(test_dir)
+    try:
+        with TestClient(main.app) as client:
+            project_id = client.post(
+                "/api/projects",
+                json={
+                    "brief": "Adopt PostgreSQL over MongoDB for the orders service.",
+                    "domain": "engineering_rfc",
+                },
+            ).json()["id"]
+            for _ in range(7):  # ontology -> graph -> env -> prepare -> activate -> sim -> report
+                resp = client.post(
+                    f"/api/projects/{project_id}/pipeline/run-next",
+                    json={"rounds": 2, "agents_per_round": 3},
+                )
+                assert resp.status_code == 200, resp.text
+
+            project = client.get(f"/api/projects/{project_id}").json()
+            messages = project["debate_messages"]
+
+            # Every roster seat that's NOT the Skeptic should have spoken at
+            # least once per round (full_panel_per_round=True). The roster
+            # has 7 seats; 6 non-Skeptic, 1 Skeptic. Over 2 rounds we expect
+            # at least 6 unique non-Skeptic names in round 1.
+            round1_msgs = [m for m in messages if m.get("round") == 1]
+            non_skeptic_in_r1 = {
+                m["agent_name"]
+                for m in round1_msgs
+                if m.get("agent_role") != "Skeptic"
+            }
+            assert len(non_skeptic_in_r1) >= 6, (
+                f"expected ≥6 non-Skeptic seats in round 1, got {non_skeptic_in_r1}"
+            )
+
+            # The Skeptic should have run a cross-examination turn each round.
+            cx_msgs = [m for m in messages if m.get("message_type") == "cross_examination"]
+            assert len(cx_msgs) >= 2, f"expected ≥2 cross-examinations, got {len(cx_msgs)}"
+            assert all(m.get("agent_role") == "Skeptic" for m in cx_msgs)
+    finally:
+        shutil.rmtree(test_dir, ignore_errors=True)
+
+
 def test_engineering_rfc_pipeline_convenes_fixed_panel_end_to_end():
     """The full specialized pipeline runs and convenes the 7-seat reviewer panel."""
     test_dir = _make_test_dir()

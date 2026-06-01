@@ -102,6 +102,16 @@ class DomainProfile:
     """Domain-specific disclaimer line for the footer. Falls back to a
     generic 'decision support, not a substitute for human judgment' line."""
 
+    full_panel_per_round: bool = False
+    """When True, every seat in the fixed roster speaks every round (instead
+    of the default stride-sampled subset). Use when the roster is the moat
+    and partial coverage would defeat the point."""
+
+    cross_examiner_role: Optional[str] = None
+    """When set, the roster member with this ``role`` gets one extra turn at
+    the end of each round explicitly prompted to attack the round's leading
+    argument. Used to make the Skeptic seat earn its keep."""
+
     @property
     def uses_fixed_ontology(self) -> bool:
         return self.fixed_ontology is not None

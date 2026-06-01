@@ -341,4 +341,6 @@ ENGINEERING_RFC_DOMAIN = DomainProfile(
         "The engineering team owns the final decision and is responsible "
         "for validating the trade-offs against the current system state."
     ),
+    full_panel_per_round=True,
+    cross_examiner_role="Skeptic",
 )

@@ -305,6 +305,8 @@ class InMemoryGraphBuilder:
             return None
 
         edges: list[GraphRelationEdge] = []
+        dropped_unknown_type = 0
+        dropped_unknown_node = 0
         for item in raw_edges:
             if not isinstance(item, dict):
                 continue
@@ -314,12 +316,14 @@ class InMemoryGraphBuilder:
             if not src_name or not tgt_name or not type_name:
                 continue
             if src_name not in nodes_by_name or tgt_name not in nodes_by_name:
+                dropped_unknown_node += 1
                 continue
-            if type_name.lower() not in edge_type_index:
-                if not ontology.edge_types:
-                    continue
-                type_name = ontology.edge_types[0].name
-            ontology_edge = edge_type_index.get(type_name.lower()) or ontology.edge_types[0]
+            # Honor the ontology strictly: misclassified-edge fallback to
+            # edge_types[0] would silently mislabel relations. Drop instead.
+            ontology_edge = edge_type_index.get(type_name.lower())
+            if ontology_edge is None:
+                dropped_unknown_type += 1
+                continue
             edges.append(
                 GraphRelationEdge(
                     id=make_edge_id(),
@@ -329,6 +333,15 @@ class InMemoryGraphBuilder:
                     description=str(item.get("description") or "").strip(),
                     strength=0.7,
                 )
+            )
+
+        if dropped_unknown_type or dropped_unknown_node:
+            logger.info(
+                "Graph extraction: kept %d edges; dropped %d with unknown type, "
+                "%d referencing unknown nodes",
+                len(edges),
+                dropped_unknown_type,
+                dropped_unknown_node,
             )
 
         return KnowledgeGraph(nodes=nodes, edges=edges)
