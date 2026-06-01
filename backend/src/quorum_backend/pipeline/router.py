@@ -347,6 +347,21 @@ async def _run_prepare_stage(project: Project) -> None:
     if not project.agents:
         raise HTTPException(status_code=409, detail="Agents must be generated first (run env/setup)")
 
+    domain = get_domain(getattr(project, "domain", DEFAULT_DOMAIN_KEY))
+    if getattr(domain, "skip_simulation_config", False):
+        # The time/platform configs are social-media-sim artefacts. For a
+        # fixed-roster RFC review they don't shape the debate, so we
+        # short-circuit with a minimal deterministic SimulationParameters
+        # and keep the state machine moving.
+        from quorum_backend.pipeline.models import SimulationParameters
+
+        project.simulation_parameters = SimulationParameters(generation_reasoning="(skipped: not used by this domain)")
+        project.transition(
+            ProjectState.CONFIG_READY,
+            f"Simulation config skipped for {domain.name} (not used by this domain)",
+        )
+        return
+
     project.log("info", "Generating simulation configuration…", stage="prepare")
 
     def _on_step(msg: str) -> None:
@@ -365,6 +380,26 @@ async def _run_activation_stage(project: Project) -> None:
         return
     if not project.simulation_parameters:
         raise HTTPException(status_code=409, detail="Simulation config must be generated first (run simulation/prepare)")
+
+    domain = get_domain(getattr(project, "domain", DEFAULT_DOMAIN_KEY))
+    if getattr(domain, "skip_activation", False):
+        # For RFC review the brief itself is the activation; an LLM-written
+        # "narrative direction + hot topics + starter posts" adds noise.
+        from quorum_backend.pipeline.models import EventConfig
+
+        project.activation = EventConfig(
+            initial_posts=[],
+            scheduled_events=[],
+            hot_topics=[],
+            narrative_direction=(
+                f"The deliberation is anchored on the decision in the brief: {project.brief[:200]}"
+            ),
+        )
+        project.transition(
+            ProjectState.ACTIVATION_READY,
+            f"Activation skipped for {domain.name} (the brief is the activation)",
+        )
+        return
 
     project.log("info", "Generating initial activation plan…", stage="activate")
 

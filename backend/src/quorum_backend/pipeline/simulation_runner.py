@@ -496,6 +496,71 @@ async def _run_cross_examination_turn(
     return cx_msg
 
 
+def _tally_final_stances(messages: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compute the actual vote distribution from each agent's most recent
+    message. Returns counts, the plurality stance, and the agreement rate
+    (plurality / total) — an objective, vote-derived signal that complements
+    the LLM moderator's vibe-based summary."""
+    if not messages:
+        return {
+            "counts": {"support": 0, "oppose": 0, "neutral": 0},
+            "plurality": "neutral",
+            "agreement_rate": 0.0,
+            "voters": 0,
+        }
+    final_by_agent: Dict[str, str] = {}
+    for m in messages:
+        if m.get("message_type") == "activation":
+            continue
+        agent_id = m.get("agent_id")
+        if not agent_id:
+            continue
+        stance = (m.get("stance") or "neutral").lower()
+        if stance not in {"support", "oppose", "neutral"}:
+            stance = "neutral"
+        final_by_agent[agent_id] = stance  # latest wins
+    counts = {"support": 0, "oppose": 0, "neutral": 0}
+    for s in final_by_agent.values():
+        counts[s] += 1
+    voters = sum(counts.values()) or 1
+    plurality = max(counts, key=counts.get)
+    return {
+        "counts": counts,
+        "plurality": plurality,
+        "agreement_rate": round(counts[plurality] / voters, 3),
+        "voters": sum(counts.values()),
+    }
+
+
+def _voter_dissents(
+    messages: List[Dict[str, Any]],
+    plurality: str,
+) -> List[Dict[str, str]]:
+    """Agents whose final stance differs from the plurality, with their
+    last message as the dissent text."""
+    if plurality not in {"support", "oppose", "neutral"}:
+        return []
+    final_by_agent: Dict[str, Dict[str, Any]] = {}
+    for m in messages:
+        if m.get("message_type") == "activation":
+            continue
+        agent_id = m.get("agent_id")
+        if not agent_id:
+            continue
+        final_by_agent[agent_id] = m  # latest wins
+    out: List[Dict[str, str]] = []
+    for m in final_by_agent.values():
+        stance = (m.get("stance") or "neutral").lower()
+        if stance != plurality:
+            out.append(
+                {
+                    "agent_name": str(m.get("agent_name") or "").strip(),
+                    "position": str(m.get("content") or "").strip()[:280],
+                }
+            )
+    return out
+
+
 async def generate_consensus(project: Project) -> Optional[Dict[str, Any]]:
     if not project.debate_messages:
         return None
@@ -522,18 +587,42 @@ async def generate_consensus(project: Project) -> Optional[Dict[str, Any]]:
         logger.warning("Consensus LLM call failed: %s", exc)
         return None
 
+    # Vote-derived signals from the agents' final stances. These override
+    # the moderator's vibe-based agreement_rate / dissent list with an
+    # objectively computed plurality + dissenters.
+    tally = _tally_final_stances(project.debate_messages)
+    voter_dissents = _voter_dissents(project.debate_messages, tally["plurality"])
+
     if not parsed:
-        return None
+        # Even if the LLM moderator failed, ship the vote-derived signals
+        # so the consumer still has something deterministic to display.
+        consensus = {
+            "agreed_position": "(moderator summary unavailable; see vote tally)",
+            "agreement_rate": tally["agreement_rate"],
+            "confidence_level": 0.0,
+            "dissents": voter_dissents,
+            "vote_tally": tally,
+        }
+        project.consensus = consensus
+        return consensus
 
     consensus = {
         "agreed_position": str(parsed.get("agreed_position") or "").strip(),
-        "agreement_rate": _coerce_float(parsed.get("agreement_rate"), 0.75),
+        # Trust the vote count over the LLM's self-reported number.
+        "agreement_rate": tally["agreement_rate"],
         "confidence_level": _coerce_float(parsed.get("confidence_level"), 0.75),
-        "dissents": [
-            {"agent_name": str(d.get("agent_name") or "").strip(), "position": str(d.get("position") or "").strip()}
+        # Prefer vote-derived dissents (objective). Fall back to the
+        # moderator's list only if no voters disagreed with the plurality.
+        "dissents": voter_dissents
+        or [
+            {
+                "agent_name": str(d.get("agent_name") or "").strip(),
+                "position": str(d.get("position") or "").strip(),
+            }
             for d in (parsed.get("dissents") or [])
             if isinstance(d, dict)
         ],
+        "vote_tally": tally,
     }
     project.consensus = consensus
     return consensus

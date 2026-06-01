@@ -343,4 +343,8 @@ ENGINEERING_RFC_DOMAIN = DomainProfile(
     ),
     full_panel_per_round=True,
     cross_examiner_role="Skeptic",
+    # Stages 04 (sim config) and 05 (activation) come from the social-media
+    # simulator era; they don't shape an RFC review. Skip them.
+    skip_simulation_config=True,
+    skip_activation=True,
 )

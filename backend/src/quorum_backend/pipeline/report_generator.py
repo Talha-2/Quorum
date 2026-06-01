@@ -80,6 +80,9 @@ THIS SECTION:
 THE QUESTION DEBATED:
 {brief}
 
+PREVIOUSLY-WRITTEN SECTIONS OF THIS REPORT (do NOT repeat their points; build on them):
+{prior_sections}
+
 RELEVANT EVIDENCE FROM THE SIMULATION:
 
 Agents who participated:
@@ -91,7 +94,7 @@ Debate transcript (round-by-round):
 Consensus reached:
 {consensus_text}
 
-Write 200-400 words of markdown body for this section. No heading. Quote agents directly with `>` blockquote syntax where relevant. Be concrete — name specific agents, cite specific things they said.
+Write 200-400 words of markdown body for this section. No heading. Quote agents directly with `>` blockquote syntax where relevant. Be concrete — name specific agents, cite specific things they said. If a previously-written section already covered a point, REFERENCE it briefly rather than restate it.
 """
 
 
@@ -263,6 +266,28 @@ async def _plan_outline(project: Project) -> Dict[str, Any]:
     }
 
 
+def _format_prior_sections(prior_sections: List[Dict[str, str]], max_chars: int = 4000) -> str:
+    """Render previously-written sections as title + opening paragraph so
+    the section writer can reference them without re-writing them. Char-
+    budgeted so a long report doesn't blow the context."""
+    if not prior_sections:
+        return "(this is the first section)"
+    parts: List[str] = []
+    used = 0
+    for sec in prior_sections:
+        title = sec.get("title", "Untitled")
+        body = (sec.get("content") or "").strip()
+        # First paragraph is the section's takeaway.
+        first_para = body.split("\n\n", 1)[0][:600].strip()
+        chunk = f"- **{title}**: {first_para}"
+        if used + len(chunk) > max_chars:
+            parts.append("- … (earlier sections truncated to fit context budget)")
+            break
+        parts.append(chunk)
+        used += len(chunk) + 1
+    return "\n".join(parts)
+
+
 async def _write_section(
     project: Project,
     report_title: str,
@@ -270,6 +295,7 @@ async def _write_section(
     section_title: str,
     section_description: str,
     system_prompt: Optional[str] = None,
+    prior_sections: Optional[List[Dict[str, str]]] = None,
 ) -> str:
     user = SECTION_USER_TEMPLATE.format(
         report_title=report_title,
@@ -277,6 +303,7 @@ async def _write_section(
         section_title=section_title,
         section_description=section_description,
         brief=project.brief,
+        prior_sections=_format_prior_sections(prior_sections or []),
         agent_list=_build_agent_list(project),
         transcript=_build_transcript(project),
         consensus_text=_build_consensus_text(project),
@@ -338,6 +365,7 @@ async def generate_report(
             section_title=sec["title"],
             section_description=sec.get("description", ""),
             system_prompt=domain.report_section_system_prompt,
+            prior_sections=written_sections,  # earlier sections are visible to this writer
         )
         written_sections.append({"title": sec["title"], "content": content})
 

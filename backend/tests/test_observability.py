@@ -83,5 +83,9 @@ def test_metrics_endpoint_records_llm_calls():
             assert metrics["llm"]["totals"]["calls"] > 0
             assert "local" in metrics["llm"]["providers"]
             assert metrics["projects"]["count"] == 1
+            # Per-stage rollup is exposed and the graph stage is tagged.
+            stages = metrics["llm"]["stages"]
+            assert "graph" in stages
+            assert stages["graph"]["calls"] >= 1
     finally:
         shutil.rmtree(test_dir, ignore_errors=True)

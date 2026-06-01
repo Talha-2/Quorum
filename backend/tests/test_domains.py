@@ -254,6 +254,52 @@ def test_engineering_rfc_report_is_an_adr():
         shutil.rmtree(test_dir, ignore_errors=True)
 
 
+def test_engineering_rfc_skips_simulation_config_and_activation_stages():
+    """engineering_rfc short-circuits the social-media-sim leftovers and
+    the state machine still advances cleanly to report_ready."""
+    test_dir = _make_test_dir()
+    _reset_state(test_dir)
+    try:
+        with TestClient(main.app) as client:
+            project_id = client.post(
+                "/api/projects",
+                json={"brief": "Adopt PostgreSQL over MongoDB.", "domain": "engineering_rfc"},
+            ).json()["id"]
+            for expected in [
+                "ontology_generated",
+                "graph_completed",
+                "env_ready",
+                "config_ready",      # <- stage 04 short-circuit
+                "activation_ready",  # <- stage 05 short-circuit
+                "sim_completed",
+                "report_ready",
+            ]:
+                resp = client.post(
+                    f"/api/projects/{project_id}/pipeline/run-next",
+                    json={"rounds": 2, "agents_per_round": 3},
+                )
+                assert resp.status_code == 200, resp.text
+                assert resp.json()["state"] == expected
+
+            final = client.get(f"/api/projects/{project_id}").json()
+            # Skipped stages produced minimal placeholders, not LLM output.
+            assert final["simulation_parameters"]["agent_configs"] == []
+            assert final["activation"]["hot_topics"] == []
+            assert final["activation"]["initial_posts"] == []
+
+
+            # Consensus carries the vote-derived tally + agreement_rate.
+            cons = final["consensus"]
+            assert "vote_tally" in cons
+            assert cons["vote_tally"]["voters"] >= 1
+            counts = cons["vote_tally"]["counts"]
+            assert sum(counts.values()) == cons["vote_tally"]["voters"]
+            # agreement_rate is computed from the vote, not the moderator.
+            assert 0.0 <= cons["agreement_rate"] <= 1.0
+    finally:
+        shutil.rmtree(test_dir, ignore_errors=True)
+
+
 def test_engineering_rfc_full_panel_speaks_and_skeptic_cross_examines():
     """For engineering_rfc, every reviewer speaks each round and the Skeptic
     runs a dedicated cross-examination turn after the round's normal turns."""

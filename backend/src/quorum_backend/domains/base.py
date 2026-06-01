@@ -112,6 +112,16 @@ class DomainProfile:
     the end of each round explicitly prompted to attack the round's leading
     argument. Used to make the Skeptic seat earn its keep."""
 
+    skip_simulation_config: bool = False
+    """When True, stage 04 (sim config) returns a deterministic minimal
+    config instead of an LLM call. The social-media-sim time/platform
+    configs are irrelevant for a fixed-roster RFC review."""
+
+    skip_activation: bool = False
+    """When True, stage 05 (activation) returns a deterministic empty
+    activation instead of an LLM call. For RFC review the brief IS the
+    activation; the panel doesn't need a 'narrative direction' to deliberate."""
+
     @property
     def uses_fixed_ontology(self) -> bool:
         return self.fixed_ontology is not None

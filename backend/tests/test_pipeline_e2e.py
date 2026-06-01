@@ -38,6 +38,10 @@ def test_pipeline_e2e_flow():
                     "brief": "Should the team launch the new coordination workflow next quarter?",
                     "constraints": "Budget is fixed\nCompliance review cannot slip",
                     "signals": "Customer demand is rising",
+                    # Pin to the general LLM-driven domain; this test asserts
+                    # LLM-generated agent_configs / activation, which are
+                    # intentionally skipped for fixed-roster domains.
+                    "domain": "general",
                 },
             )
             assert create_resp.status_code == 200
@@ -128,7 +132,10 @@ def test_pipeline_run_next_and_upload_guard():
         with TestClient(main.app) as client:
             create_resp = client.post(
                 "/api/projects",
-                json={"brief": "Should we change the operating model for the service rollout?"},
+                json={
+                    "brief": "Should we change the operating model for the service rollout?",
+                    "domain": "general",
+                },
             )
             assert create_resp.status_code == 200
             project_id = create_resp.json()["id"]
