@@ -40,7 +40,19 @@ class LLMProvider(ABC):
         system: str,
         user_message: str,
         max_tokens: int = 1024,
+        json_mode: bool = False,
+        stage: Optional[str] = None,
     ) -> str:
+        """Generate a completion.
+
+        ``json_mode``: when True, request structurally guaranteed JSON from the
+        provider if the API supports it (Gemini ``response_mime_type``, OpenAI
+        ``response_format``). Providers without native support ignore the flag —
+        the prompt is expected to already ask for JSON.
+
+        ``stage``: optional pipeline-stage label used by the instrumentation
+        wrapper to attribute calls to a stage in the metrics rollup.
+        """
         raise NotImplementedError
 
 
@@ -78,11 +90,24 @@ class GoogleGeminiProvider(LLMProvider):
                     ]
             self._recent_request_times.append(now)
 
-    async def generate(self, system: str, user_message: str, max_tokens: int = 1024) -> str:
+    async def generate(
+        self,
+        system: str,
+        user_message: str,
+        max_tokens: int = 1024,
+        json_mode: bool = False,
+        stage: Optional[str] = None,
+    ) -> str:
         full_prompt = f"{system}\n\n{user_message}"
 
         attempt = 0
         last_error: Optional[Exception] = None
+        gen_config_kwargs: Dict[str, Any] = {
+            "max_output_tokens": max_tokens,
+            "temperature": 0.7,
+        }
+        if json_mode:
+            gen_config_kwargs["response_mime_type"] = "application/json"
         while attempt < self.MAX_RETRIES:
             await self._wait_for_rate_limit()
             try:
@@ -90,10 +115,7 @@ class GoogleGeminiProvider(LLMProvider):
                 response = await asyncio.to_thread(
                     model.generate_content,
                     full_prompt,
-                    generation_config=self.client.types.GenerationConfig(
-                        max_output_tokens=max_tokens,
-                        temperature=0.7,
-                    ),
+                    generation_config=self.client.types.GenerationConfig(**gen_config_kwargs),
                 )
                 return response.text
             except Exception as e:
@@ -165,9 +187,19 @@ class AzureProvider(LLMProvider):
                 return str(val)
         return None
 
-    async def generate(self, system: str, user_message: str, max_tokens: int = 1024) -> str:
+    async def generate(
+        self,
+        system: str,
+        user_message: str,
+        max_tokens: int = 1024,
+        json_mode: bool = False,
+        stage: Optional[str] = None,
+    ) -> str:
         effective_max_tokens = max(max_tokens + self.REASONING_BUDGET, self.MIN_TOKENS)
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user_message}]
+        extra_kwargs: Dict[str, Any] = {}
+        if json_mode:
+            extra_kwargs["response_format"] = {"type": "json_object"}
 
         attempt = 0
         last_error: Optional[Exception] = None
@@ -179,6 +211,7 @@ class AzureProvider(LLMProvider):
                     messages=messages,
                     max_tokens=effective_max_tokens,
                     temperature=0.7,
+                    **extra_kwargs,
                 )
                 text = self._extract_response_text(response.choices[0])
                 if not text:
@@ -243,7 +276,18 @@ class ClaudeProvider(LLMProvider):
 
         self.client = Anthropic(api_key=api_key)
 
-    async def generate(self, system: str, user_message: str, max_tokens: int = 1024) -> str:
+    async def generate(
+        self,
+        system: str,
+        user_message: str,
+        max_tokens: int = 1024,
+        json_mode: bool = False,
+        stage: Optional[str] = None,
+    ) -> str:
+        # Claude has no first-class "JSON mode" flag for plain messages; the
+        # prompt is expected to ask for JSON and it complies. json_mode is
+        # accepted for interface parity but is a no-op here.
+        del json_mode
         try:
             message = self.client.messages.create(
                 model=self.model,
@@ -709,7 +753,17 @@ class LocalDeterministicProvider(LLMProvider):
             "narrower scope, clearer decision thresholds, and a shorter review loop before further escalation."
         )
 
-    async def generate(self, system: str, user_message: str, max_tokens: int = 1024) -> str:
+    async def generate(
+        self,
+        system: str,
+        user_message: str,
+        max_tokens: int = 1024,
+        json_mode: bool = False,
+        stage: Optional[str] = None,
+    ) -> str:
+        # The local stub already returns JSON where the pipeline expects it,
+        # so json_mode is informational.
+        del json_mode, stage
         self.counter += 1
         lower_prompt = user_message.lower()
         system_lower = system.lower()
@@ -780,13 +834,26 @@ class InstrumentedProvider(LLMProvider):
         self._inner = inner
         self.name = inner.name
 
-    async def generate(self, system: str, user_message: str, max_tokens: int = 1024) -> str:
+    async def generate(
+        self,
+        system: str,
+        user_message: str,
+        max_tokens: int = 1024,
+        json_mode: bool = False,
+        stage: Optional[str] = None,
+    ) -> str:
         start = time.perf_counter()
         prompt_chars = len(system) + len(user_message)
         completion = ""
         ok = True
         try:
-            completion = await self._inner.generate(system, user_message, max_tokens)
+            completion = await self._inner.generate(
+                system,
+                user_message,
+                max_tokens,
+                json_mode=json_mode,
+                stage=stage,
+            )
             return completion
         except Exception:
             ok = False
@@ -794,16 +861,23 @@ class InstrumentedProvider(LLMProvider):
         finally:
             latency_ms = (time.perf_counter() - start) * 1000.0
             llm_metrics.record(
-                self.name, latency_ms, prompt_chars, len(completion), ok
+                self.name,
+                latency_ms,
+                prompt_chars,
+                len(completion),
+                ok,
+                stage=stage,
             )
             logger.info(
-                "llm.call provider=%s ok=%s latency_ms=%.0f "
-                "prompt_chars=%d completion_chars=%d",
+                "llm.call provider=%s stage=%s ok=%s latency_ms=%.0f "
+                "prompt_chars=%d completion_chars=%d json_mode=%s",
                 self.name,
+                stage or "unspecified",
                 ok,
                 latency_ms,
                 prompt_chars,
                 len(completion),
+                json_mode,
             )
 
 

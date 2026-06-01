@@ -14,7 +14,7 @@ import logging
 import sys
 from dataclasses import dataclass
 from threading import Lock
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 # --- Structured logging --------------------------------------------------
 
@@ -72,11 +72,12 @@ class _ProviderStat:
 
 
 class LLMMetrics:
-    """Process-wide aggregate of every LLM call, grouped by provider."""
+    """Process-wide aggregate of every LLM call, grouped by provider and stage."""
 
     def __init__(self) -> None:
         self._lock = Lock()
         self._by_provider: Dict[str, _ProviderStat] = {}
+        self._by_stage: Dict[str, _ProviderStat] = {}
 
     def record(
         self,
@@ -85,39 +86,48 @@ class LLMMetrics:
         prompt_chars: int,
         completion_chars: int,
         ok: bool,
+        stage: Optional[str] = None,
     ) -> None:
         with self._lock:
-            stat = self._by_provider.setdefault(provider, _ProviderStat())
-            stat.calls += 1
-            if not ok:
-                stat.failures += 1
-            stat.latency_ms_total += latency_ms
-            stat.prompt_chars += prompt_chars
-            stat.completion_chars += completion_chars
+            for bucket in (
+                self._by_provider.setdefault(provider, _ProviderStat()),
+                self._by_stage.setdefault(stage or "unspecified", _ProviderStat()),
+            ):
+                bucket.calls += 1
+                if not ok:
+                    bucket.failures += 1
+                bucket.latency_ms_total += latency_ms
+                bucket.prompt_chars += prompt_chars
+                bucket.completion_chars += completion_chars
+
+    @staticmethod
+    def _rollup(stats: Dict[str, _ProviderStat]) -> Dict[str, Any]:
+        out: Dict[str, Any] = {}
+        for name, s in stats.items():
+            est_tokens = (s.prompt_chars + s.completion_chars) // 4
+            out[name] = {
+                "calls": s.calls,
+                "failures": s.failures,
+                "avg_latency_ms": round(s.latency_ms_total / s.calls, 1)
+                if s.calls
+                else 0.0,
+                "estimated_tokens": est_tokens,
+            }
+        return out
 
     def snapshot(self) -> Dict[str, Any]:
         """A JSON-safe view of the metrics. Token counts are estimates
         (~4 characters per token), suitable for trend and cost tracking."""
         with self._lock:
-            providers: Dict[str, Any] = {}
-            t_calls = t_failures = t_tokens = 0
-            t_latency = 0.0
-            for name, s in self._by_provider.items():
-                est_tokens = (s.prompt_chars + s.completion_chars) // 4
-                providers[name] = {
-                    "calls": s.calls,
-                    "failures": s.failures,
-                    "avg_latency_ms": round(s.latency_ms_total / s.calls, 1)
-                    if s.calls
-                    else 0.0,
-                    "estimated_tokens": est_tokens,
-                }
-                t_calls += s.calls
-                t_failures += s.failures
-                t_tokens += est_tokens
-                t_latency += s.latency_ms_total
+            providers = self._rollup(self._by_provider)
+            stages = self._rollup(self._by_stage)
+            t_calls = sum(p["calls"] for p in providers.values())
+            t_failures = sum(p["failures"] for p in providers.values())
+            t_tokens = sum(p["estimated_tokens"] for p in providers.values())
+            t_latency = sum(s.latency_ms_total for s in self._by_provider.values())
             return {
                 "providers": providers,
+                "stages": stages,
                 "totals": {
                     "calls": t_calls,
                     "failures": t_failures,
@@ -130,6 +140,7 @@ class LLMMetrics:
         """Clear all metrics. Used by tests."""
         with self._lock:
             self._by_provider.clear()
+            self._by_stage.clear()
 
 
 # Process-wide singleton.

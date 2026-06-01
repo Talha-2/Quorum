@@ -31,7 +31,23 @@ async def _execute(job: Job) -> None:
 
     project = pipeline_router._projects.get(job.project_id)
     if project is None:
-        raise RuntimeError(f"Project {job.project_id} not found in cache")
+        # Cache miss can happen when the project was created in a different
+        # asyncio task/thread (e.g. the TestClient request thread) and the
+        # write isn't yet visible to the worker. Fall back to loading from
+        # the DB and warming the cache before giving up.
+        logger.info(
+            "Job %s: project %s not in cache, reloading from DB",
+            job.id,
+            job.project_id,
+        )
+        from quorum_backend.pipeline import db as db_module
+
+        all_projects = db_module.load_all_projects()
+        if job.project_id in all_projects:
+            pipeline_router._projects[job.project_id] = all_projects[job.project_id]
+            project = all_projects[job.project_id]
+        else:
+            raise RuntimeError(f"Project {job.project_id} not found in cache or DB")
 
     async with pipeline_router._get_project_lock(job.project_id):
         if job.job_type == "run_next":

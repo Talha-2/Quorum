@@ -484,7 +484,13 @@ async def generate_agents_for_graph(
 
         try:
             llm = get_llm()
-            raw = await llm.generate(system=system, user_message=user_message, max_tokens=3500)
+            raw = await llm.generate(
+                system=system,
+                user_message=user_message,
+                max_tokens=3500,
+                json_mode=True,
+                stage="env",
+            )
         except Exception as exc:
             logger.warning("Persona batch LLM call failed: %s", exc)
             agents.extend(_fallback_profile(e) for e in batch)

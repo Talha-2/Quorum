@@ -120,7 +120,13 @@ async def _generate_time_config(brief: str, context: str, num_agents: int) -> tu
     parsed: Optional[dict] = None
     try:
         llm = get_llm()
-        raw = await llm.generate(system=TIME_CONFIG_SYSTEM_PROMPT, user_message=user, max_tokens=1500)
+        raw = await llm.generate(
+            system=TIME_CONFIG_SYSTEM_PROMPT,
+            user_message=user,
+            max_tokens=1500,
+            json_mode=True,
+            stage="prepare",
+        )
         parsed = _parse_json_object(raw)
     except ContentFilterError:
         logger.warning("Time config generation blocked by content filter; using defaults")
@@ -222,7 +228,13 @@ async def _generate_event_config(
     parsed: Optional[dict] = None
     try:
         llm = get_llm()
-        raw = await llm.generate(system=EVENT_CONFIG_SYSTEM_PROMPT, user_message=user, max_tokens=2000)
+        raw = await llm.generate(
+            system=EVENT_CONFIG_SYSTEM_PROMPT,
+            user_message=user,
+            max_tokens=2000,
+            json_mode=True,
+            stage="activate",
+        )
         parsed = _parse_json_object(raw)
     except ContentFilterError:
         logger.warning("Event config generation blocked by content filter; using minimal default")
@@ -392,7 +404,13 @@ async def _generate_agent_configs_batch(brief: str, agents: List[AgentProfile], 
     parsed: Optional[dict] = None
     try:
         llm = get_llm()
-        raw = await llm.generate(system=AGENT_BATCH_SYSTEM_PROMPT, user_message=user, max_tokens=3500)
+        raw = await llm.generate(
+            system=AGENT_BATCH_SYSTEM_PROMPT,
+            user_message=user,
+            max_tokens=3500,
+            json_mode=True,
+            stage="prepare",
+        )
         parsed = _parse_json_object(raw)
     except ContentFilterError:
         logger.warning("Agent batch generation blocked by content filter; using fallback")

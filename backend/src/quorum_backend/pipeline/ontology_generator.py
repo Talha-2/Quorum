@@ -10,6 +10,7 @@ import re
 from typing import Optional
 
 from quorum_backend.llm import get_llm
+from quorum_backend.pipeline.llm_utils import generate_json_with_retry
 
 from quorum_backend.pipeline.models import EdgeType, EntityType, Ontology
 
@@ -199,23 +200,21 @@ async def generate_ontology(brief: str, context: str = "") -> Optional[Ontology]
         context=(context or "No additional context provided.").strip(),
     )
 
+    llm = get_llm()
     try:
-        llm = get_llm()
-        raw = await llm.generate(
+        parsed = await generate_json_with_retry(
+            llm,
             system=ONTOLOGY_SYSTEM_PROMPT,
             user_message=user_message,
+            stage="ontology",
+            parser=_parse_ontology_json,
             max_tokens=3000,
         )
     except Exception as exc:
         logger.warning("Ontology LLM call failed: %s", exc)
         return None
 
-    if not raw or not raw.strip():
-        return None
-
-    parsed = _parse_ontology_json(raw)
     if parsed is None:
-        logger.warning("Could not parse ontology JSON. Raw start: %s", (raw or "")[:200])
         return None
 
     ontology = _validate_and_normalize(parsed)

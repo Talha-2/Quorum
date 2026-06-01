@@ -10,6 +10,11 @@ import random
 from typing import Any, Dict, List, Optional
 
 from quorum_backend.llm import ContentFilterError, get_llm
+from quorum_backend.pipeline.llm_utils import (
+    DEFAULT_AGENT_TURN_CHAR_BUDGET,
+    format_transcript,
+    generate_json_with_retry,
+)
 from quorum_backend.pipeline.models import AgentProfile, Project
 
 logger = logging.getLogger(__name__)
@@ -130,13 +135,16 @@ def _select_active_agents(agents: List[AgentProfile], round_num: int, max_per_ro
     return picked[:max_per_round]
 
 
-def _format_transcript(messages: List[Dict[str, Any]], max_recent: int = 8) -> str:
-    if not messages:
-        return "(no messages yet — you are the first to speak)"
-    recent = messages[-max_recent:]
-    return "\n".join(
-        f"- {m.get('agent_name', 'unknown')} ({m.get('stance', 'neutral')}): {m.get('content', '')}"
-        for m in recent
+def _format_transcript(
+    messages: List[Dict[str, Any]],
+    max_chars: int = DEFAULT_AGENT_TURN_CHAR_BUDGET,
+) -> str:
+    """Token-budgeted recent-first transcript view for an agent's turn."""
+    return format_transcript(
+        messages,
+        max_chars=max_chars,
+        recent_first=True,
+        empty_text="(no messages yet — you are the first to speak)",
     )
 
 
@@ -232,13 +240,16 @@ async def run_simulation(project: Project, total_rounds: int = 3, agents_per_rou
             )
 
             try:
-                raw = await llm.generate(
+                parsed = await generate_json_with_retry(
+                    llm,
                     system=(
                         "You are a debate participant in an academic, scholarly multi-agent simulation. "
                         "You analyze the brief from your assigned perspective for research purposes. "
                         "Stay in character. Return only the JSON object."
                     ),
                     user_message=user_msg,
+                    stage="simulate",
+                    parser=_parse_json_object,
                     max_tokens=900,
                 )
             except ContentFilterError:
@@ -249,8 +260,8 @@ async def run_simulation(project: Project, total_rounds: int = 3, agents_per_rou
                 project.log("warn", f"{agent.name} skipped (LLM error)", stage="simulating")
                 continue
 
-            parsed = _parse_json_object(raw)
             if not parsed:
+                project.log("warn", f"{agent.name} skipped (no parseable response)", stage="simulating")
                 continue
 
             content = str(parsed.get("message") or "").strip()
@@ -290,18 +301,20 @@ async def generate_consensus(project: Project) -> Optional[Dict[str, Any]]:
 
     prompt = CONSENSUS_PROMPT.format(brief=project.brief, transcript=transcript)
 
+    llm = get_llm()
     try:
-        llm = get_llm()
-        raw = await llm.generate(
+        parsed = await generate_json_with_retry(
+            llm,
             system="You are a neutral moderator. Return only the JSON object.",
             user_message=prompt,
+            stage="simulate",
+            parser=_parse_json_object,
             max_tokens=900,
         )
     except Exception as exc:
         logger.warning("Consensus LLM call failed: %s", exc)
         return None
 
-    parsed = _parse_json_object(raw)
     if not parsed:
         return None
 
@@ -320,7 +333,7 @@ async def generate_consensus(project: Project) -> Optional[Dict[str, Any]]:
 
 
 async def chat_with_agent(project: Project, agent: AgentProfile, user_message: str) -> Optional[str]:
-    transcript_summary = _format_transcript(project.debate_messages, max_recent=12)
+    transcript_summary = _format_transcript(project.debate_messages)
     consensus_str = ""
     if project.consensus:
         consensus_str = (
@@ -343,7 +356,12 @@ async def chat_with_agent(project: Project, agent: AgentProfile, user_message: s
 
     try:
         llm = get_llm()
-        raw = await llm.generate(system=system, user_message=user_message, max_tokens=400)
+        raw = await llm.generate(
+            system=system,
+            user_message=user_message,
+            max_tokens=400,
+            stage="chat",
+        )
     except Exception as exc:
         logger.warning("Deep interaction LLM call failed: %s", exc)
         return None

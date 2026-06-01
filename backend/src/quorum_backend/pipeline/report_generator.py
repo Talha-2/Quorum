@@ -11,6 +11,11 @@ from typing import Any, Callable, Dict, List, Optional
 
 from quorum_backend.domains import DomainProfile, get_domain
 from quorum_backend.llm import ContentFilterError, get_llm
+from quorum_backend.pipeline.llm_utils import (
+    DEFAULT_REPORT_SECTION_CHAR_BUDGET,
+    format_transcript,
+    generate_json_with_retry,
+)
 from quorum_backend.pipeline.models import Project, utc_now_iso
 
 logger = logging.getLogger(__name__)
@@ -123,22 +128,23 @@ def _build_agent_list(project: Project, max_agents: int = 12) -> str:
     return "\n".join(lines)
 
 
-def _build_transcript(project: Project, max_messages: int = 30) -> str:
-    if not project.debate_messages:
-        return "(no debate messages recorded)"
-    msgs = project.debate_messages[:max_messages]
-    lines: List[str] = []
-    for m in msgs:
-        round_num = m.get("round", "?")
-        agent_name = m.get("agent_name", "?")
-        stance = m.get("stance", "?")
-        content = (m.get("content") or "").strip()
-        if not content:
-            continue
-        lines.append(f"[R{round_num}] {agent_name} ({stance}): {content}")
-    if len(project.debate_messages) > max_messages:
-        lines.append(f"… plus {len(project.debate_messages) - max_messages} more messages")
-    return "\n".join(lines)
+def _build_transcript(
+    project: Project,
+    max_chars: int = DEFAULT_REPORT_SECTION_CHAR_BUDGET,
+) -> str:
+    """Token-budgeted transcript for a report section.
+
+    Keeps the earliest messages first (chronological), drops the most recent
+    only when the budget is exhausted. Sections are typically written against
+    a long debate; preserving the opening rounds is usually what readers
+    expect from a report.
+    """
+    return format_transcript(
+        project.debate_messages or [],
+        max_chars=max_chars,
+        recent_first=False,
+        empty_text="(no debate messages recorded)",
+    )
 
 
 def _build_consensus_text(project: Project) -> str:
@@ -218,9 +224,16 @@ async def _plan_outline(project: Project) -> Dict[str, Any]:
         consensus_excerpt=consensus_excerpt,
     )
 
+    llm = get_llm()
     try:
-        llm = get_llm()
-        raw = await llm.generate(system=PLAN_SYSTEM_PROMPT, user_message=user, max_tokens=1500)
+        parsed = await generate_json_with_retry(
+            llm,
+            system=PLAN_SYSTEM_PROMPT,
+            user_message=user,
+            stage="report",
+            parser=_parse_json_object,
+            max_tokens=1500,
+        )
     except ContentFilterError:
         logger.warning("Report planning blocked by content filter; using fallback outline")
         return _fallback_outline(project)
@@ -228,7 +241,6 @@ async def _plan_outline(project: Project) -> Dict[str, Any]:
         logger.warning("Report planning LLM call failed: %s; using fallback outline", exc)
         return _fallback_outline(project)
 
-    parsed = _parse_json_object(raw or "")
     if not parsed or not isinstance(parsed, dict):
         return _fallback_outline(project)
 
@@ -276,6 +288,7 @@ async def _write_section(
             system=system_prompt or SECTION_SYSTEM_PROMPT,
             user_message=user,
             max_tokens=1800,
+            stage="report",
         )
     except ContentFilterError:
         logger.warning("Section '%s' blocked by content filter", section_title)

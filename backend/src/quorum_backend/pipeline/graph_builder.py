@@ -228,6 +228,8 @@ class InMemoryGraphBuilder:
                     system=GRAPH_EXTRACTION_PROMPT,
                     user_message=user_message,
                     max_tokens=budget,
+                    json_mode=True,
+                    stage="graph",
                 )
             except Exception as exc:
                 logger.warning(
