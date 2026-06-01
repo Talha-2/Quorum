@@ -532,22 +532,21 @@ export default function QuorumPipeline() {
           <div className="flex-1 flex items-center justify-center p-6 overflow-y-auto bg-[var(--bg-soft)]">
             <div className="w-full max-w-2xl">
               <div className="bg-[var(--card)] border border-[var(--line)] rounded-lg overflow-hidden">
-                <div className="px-8 py-6 border-b border-[var(--line)] bg-[var(--bg-soft)]">
-                  <div className="flex items-center gap-2 mb-2">
+                <div className="px-6 py-4 border-b border-[var(--line)] bg-[var(--bg-soft)]">
+                  <div className="flex items-center gap-2 mb-1">
                     <Sparkles className="h-3.5 w-3.5 text-[var(--brand)]" />
                     <span className="label-mono">New project</span>
                   </div>
-                  <h2 className="font-display text-2xl font-medium tracking-tight text-[var(--ink)]">
+                  <h2 className="font-display text-xl font-medium tracking-tight text-[var(--ink)]">
                     Review an RFC
                   </h2>
-                  <p className="mt-2 text-sm text-[var(--muted)]">
-                    Drop in a design doc or describe the decision. A standing
-                    reviewer panel — principal eng, SRE, security, cost, product,
-                    tech lead, skeptic — debates it and emits an ADR with the
-                    recommended decision, alternatives considered, and dissents.
+                  <p className="mt-1 text-[13px] text-[var(--muted)] leading-snug">
+                    Drop in a design doc or describe the decision. A reviewer
+                    panel — principal eng, SRE, security, cost, product, tech
+                    lead, skeptic — debates it and emits an ADR.
                   </p>
                 </div>
-                <div className="p-8 space-y-6">
+                <div className="p-6 space-y-4">
                   {projectLoading ? (
                     <div className="flex flex-col items-center justify-center py-10 text-center">
                       <Loader2 className="h-6 w-6 animate-spin text-[var(--brand)]" />
@@ -558,43 +557,51 @@ export default function QuorumPipeline() {
                   ) : (
                     <>
                   <div>
-                    <label className="label-mono mb-2 block">Decision</label>
+                    <label className="label-mono mb-1.5 block">Decision</label>
                     <textarea
                       value={briefDraft}
                       onChange={(e) => setBriefDraft(e.target.value)}
-                      placeholder="What's the decision? E.g. 'Adopt PostgreSQL over MongoDB for the orders service. Constraints: 1-quarter migration budget, no downtime windows longer than 5 minutes, existing analytics pipeline expects relational joins.'"
-                      className="input min-h-[120px] resize-y"
-                      rows={4}
+                      placeholder="E.g. 'Adopt PostgreSQL over MongoDB for the orders service. 1-quarter migration budget, 5-min downtime cap, analytics expects relational joins.'"
+                      className="input min-h-[88px] resize-y"
+                      rows={3}
                     />
                   </div>
                   {availableDomains.length > 1 && (
                     <div>
-                      <label className="label-mono mb-2 block">Domain</label>
+                      <label className="label-mono mb-1.5 block">Domain</label>
                       <select
                         value={domainDraft}
                         onChange={(e) => setDomainDraft(e.target.value)}
                         className="input"
+                        style={{ color: 'var(--ink)' }}
                       >
                         {availableDomains.map((d) => (
-                          <option key={d.key} value={d.key}>
+                          <option
+                            key={d.key}
+                            value={d.key}
+                            style={{
+                              backgroundColor: 'var(--card)',
+                              color: 'var(--ink)',
+                            }}
+                          >
                             {d.name}
                           </option>
                         ))}
                       </select>
-                      <p className="mt-2 text-[11px] text-[var(--muted)] leading-relaxed">
+                      <p className="mt-1.5 text-[11px] text-[var(--muted)] leading-snug">
                         {availableDomains.find((d) => d.key === domainDraft)?.description}
                       </p>
                     </div>
                   )}
                   <div>
-                    <label className="label-mono mb-2 block">
+                    <label className="label-mono mb-1.5 block">
                       Constraints (optional)
                     </label>
                     <textarea
                       value={constraintsDraft}
                       onChange={(e) => setConstraintsDraft(e.target.value)}
                       placeholder="One per line"
-                      className="input min-h-[72px] resize-y font-mono text-[13px]"
+                      className="input min-h-[52px] resize-y font-mono text-[13px]"
                       rows={2}
                     />
                   </div>
@@ -620,10 +627,6 @@ export default function QuorumPipeline() {
                       </>
                     )}
                   </button>
-                  <p className="text-[11px] text-[var(--muted)] text-center">
-                    Backend: <span className="font-mono">localhost:8000</span> ·
-                    LLM: <span className="font-mono text-[var(--brand)]">google/gemini</span>
-                  </p>
                     </>
                   )}
                 </div>
