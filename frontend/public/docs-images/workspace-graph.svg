@@ -1,78 +1,147 @@
-<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1600" height="980" rx="28" fill="#F7F1E7"/>
-  <rect x="38" y="34" width="1524" height="912" rx="24" fill="#FFFDF9" stroke="#E2D7C6" stroke-width="2"/>
-  <rect x="38" y="34" width="1524" height="68" rx="24" fill="#FFFDF9"/>
-  <path d="M38 102H1562" stroke="#E5E4E2" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Quorum graph screen mock">
+  <title>Quorum graph view — full-screen RFC knowledge graph with node detail sidebar</title>
 
-  <text x="88" y="76" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Quorum</text>
+  <defs>
+    <style>
+      .canvas { fill: #ffffff; stroke: #e5e7eb; }
+      .chrome { fill: #f8fafc; stroke: #e2e8f0; }
+      .pane   { fill: #f8fafc; stroke: #e2e8f0; }
+      .sidebar { fill: #ffffff; stroke: #e2e8f0; }
+      .chip   { fill: #ffffff; stroke: #cbd5e1; }
+      .chip-active { fill: #fff7ed; stroke: #ea580c; }
+      .text-h     { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; }
+      .text-body  { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11.5px; }
+      .text-muted { fill: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10.5px; }
+      .text-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; }
+      .text-chip { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 500; }
+      .text-chip-active { fill: #ea580c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 600; }
+      .h-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
+      .h-title { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 600; }
+      .h-sub   { fill: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; }
+      .edge   { stroke: #cbd5e1; stroke-width: 1.25; fill: none; }
+      .edge-strong { stroke: #ea580c; stroke-width: 2; fill: none; }
+      .node-fill-decision { fill: #ea580c; }
+      .node-fill-alt   { fill: #38bdf8; }
+      .node-fill-trade { fill: #a78bfa; }
+      .node-fill-const { fill: #facc15; }
+      .node-fill-comp  { fill: #34d399; }
+      .node-fill-fail  { fill: #fb7185; }
+      .node-fill-stake { fill: #94a3b8; }
+      .node-stroke { stroke: #ffffff; stroke-width: 1.5; }
+      .node-selected { stroke: #ea580c; stroke-width: 2.5; }
+      .node-label { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10.5px; font-weight: 500; }
+    </style>
+  </defs>
 
-  <rect x="316" y="49" width="120" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="347" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Workbench</text>
-  <rect x="444" y="49" width="92" height="38" rx="11" fill="#FFFFFF" stroke="#D9D8D6"/>
-  <text x="475" y="73" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Graph</text>
-  <rect x="544" y="49" width="96" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="575" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Agents</text>
+  <rect class="canvas" x="0.5" y="0.5" width="1279" height="719" rx="12"/>
 
-  <rect x="66" y="126" width="1120" height="744" rx="18" fill="#FFFFFF" stroke="#E5E4E2" stroke-width="2"/>
-  <rect x="1204" y="126" width="316" height="744" rx="18" fill="#F8F7F4" stroke="#E5E4E2" stroke-width="2"/>
+  <text class="h-label" x="40" y="44">WORKSPACE — GRAPH</text>
+  <text class="h-title" x="40" y="74">Full-screen view of the RFC knowledge graph</text>
+  <text class="h-sub"   x="40" y="98">Drag nodes, toggle edge labels, click any node to inspect its attributes and jump straight into a reviewer chat.</text>
 
-  <rect x="92" y="150" width="210" height="42" rx="12" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
-  <text x="118" y="176" fill="#8D4D24" font-family="Arial, sans-serif" font-size="16" font-weight="700">Search nodes or relation types</text>
+  <!-- chrome -->
+  <rect class="chrome" x="40" y="124" width="1200" height="48" rx="8"/>
+  <text class="text-h"     x="56" y="153">Quorum — Adopt PostgreSQL over MongoDB</text>
+  <text class="text-muted" x="980" y="153">Workbench · Graph · Agents · New project</text>
 
-  <rect x="318" y="150" width="96" height="42" rx="12" fill="#E8F4EB" stroke="#2F8C56" stroke-width="2"/>
-  <text x="346" y="176" fill="#2F8C56" font-family="Arial, sans-serif" font-size="16" font-weight="700">People</text>
-  <rect x="428" y="150" width="142" height="42" rx="12" fill="#E5EEF8" stroke="#4C7CB3" stroke-width="2"/>
-  <text x="460" y="176" fill="#355F8E" font-family="Arial, sans-serif" font-size="16" font-weight="700">Organizations</text>
-  <rect x="584" y="150" width="114" height="42" rx="12" fill="#FFF4DE" stroke="#C8922E" stroke-width="2"/>
-  <text x="616" y="176" fill="#8B651A" font-family="Arial, sans-serif" font-size="16" font-weight="700">Topics</text>
+  <!-- filters bar -->
+  <rect class="pane" x="40" y="184" width="900" height="40" rx="8"/>
+  <text class="text-label" x="56" y="208">FILTERS</text>
+  <g transform="translate(112,194)">
+    <rect class="chip-active" x="0.5" y="0.5" width="74" height="22" rx="11"/>
+    <text class="text-chip-active" x="14" y="16">All types</text>
+    <rect class="chip" x="84.5" y="0.5" width="80" height="22" rx="11"/>
+    <text class="text-chip" x="98" y="16">Decision</text>
+    <rect class="chip" x="172.5" y="0.5" width="92" height="22" rx="11"/>
+    <text class="text-chip" x="186" y="16">Alternative</text>
+    <rect class="chip" x="272.5" y="0.5" width="80" height="22" rx="11"/>
+    <text class="text-chip" x="286" y="16">Tradeoff</text>
+    <rect class="chip" x="360.5" y="0.5" width="88" height="22" rx="11"/>
+    <text class="text-chip" x="374" y="16">Constraint</text>
+    <rect class="chip" x="456.5" y="0.5" width="74" height="22" rx="11"/>
+    <text class="text-chip" x="470" y="16">Reviewer</text>
+  </g>
 
-  <line x1="240" y1="350" x2="444" y2="292" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="444" y1="292" x2="650" y2="344" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="650" y1="344" x2="878" y2="286" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="444" y1="292" x2="510" y2="516" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="510" y1="516" x2="708" y2="600" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="708" y1="600" x2="922" y2="522" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="650" y1="344" x2="708" y2="600" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="240" y1="350" x2="318" y2="590" stroke="#DACAB5" stroke-width="4"/>
-  <line x1="318" y1="590" x2="510" y2="516" stroke="#DACAB5" stroke-width="4"/>
+  <!-- graph canvas (big) -->
+  <rect class="pane" x="40" y="232" width="900" height="448" rx="8"/>
 
-  <circle cx="240" cy="350" r="38" fill="#FFEEE6" stroke="#FF4500" stroke-width="4"/>
-  <circle cx="444" cy="292" r="44" fill="#E8F4EB" stroke="#2F8C56" stroke-width="4"/>
-  <circle cx="650" cy="344" r="42" fill="#E5EEF8" stroke="#4C7CB3" stroke-width="4"/>
-  <circle cx="878" cy="286" r="38" fill="#F3ECFB" stroke="#7D59B6" stroke-width="4"/>
-  <circle cx="318" cy="590" r="36" fill="#F8E8EF" stroke="#BE5C7A" stroke-width="4"/>
-  <circle cx="510" cy="516" r="46" fill="#FFF4DE" stroke="#C8922E" stroke-width="4"/>
-  <circle cx="708" cy="600" r="48" fill="#FBE7DF" stroke="#C76839" stroke-width="4"/>
-  <circle cx="922" cy="522" r="38" fill="#E7F4F2" stroke="#2B7A74" stroke-width="4"/>
+  <!-- edges -->
+  <g class="edge">
+    <line x1="480" y1="460" x2="240" y2="320"/>
+    <line x1="480" y1="460" x2="330" y2="580"/>
+    <line x1="480" y1="460" x2="700" y2="320"/>
+    <line x1="480" y1="460" x2="760" y2="540"/>
+    <line x1="480" y1="460" x2="480" y2="620"/>
+    <line x1="240" y1="320" x2="170" y2="430"/>
+    <line x1="700" y1="320" x2="820" y2="430"/>
+    <line x1="240" y1="320" x2="170" y2="270"/>
+    <line x1="700" y1="320" x2="820" y2="270"/>
+    <line x1="330" y1="580" x2="480" y2="620"/>
+    <line x1="760" y1="540" x2="480" y2="620"/>
+    <line x1="240" y1="320" x2="330" y2="580"/>
+    <line x1="700" y1="320" x2="760" y2="540"/>
+  </g>
 
-  <text x="204" y="356" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Quorum</text>
-  <text x="400" y="298" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Platform</text>
-  <text x="606" y="350" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Architect</text>
-  <text x="836" y="292" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Docs</text>
-  <text x="288" y="596" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Offline</text>
-  <text x="470" y="522" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Activation</text>
-  <text x="666" y="606" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Simulation</text>
-  <text x="891" y="528" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Report</text>
+  <!-- highlighted edges to the selected node -->
+  <g class="edge-strong">
+    <line x1="480" y1="460" x2="240" y2="320"/>
+    <line x1="240" y1="320" x2="170" y2="430"/>
+  </g>
 
-  <text x="1230" y="166" fill="#6A6662" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">NODE DETAILS</text>
-  <text x="1230" y="210" fill="#111111" font-family="Arial, sans-serif" font-size="28" font-weight="700">Senior Platform Architect</text>
-  <text x="1230" y="246" fill="#686562" font-family="Arial, sans-serif" font-size="18">Type: Person</text>
+  <!-- nodes -->
+  <g class="node-stroke">
+    <circle class="node-fill-decision" cx="480" cy="460" r="28"/>
 
-  <rect x="1230" y="278" width="248" height="38" rx="12" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
-  <text x="1260" y="302" fill="#8D4D24" font-family="Arial, sans-serif" font-size="16" font-weight="700">@seniorplatformarch_974</text>
+    <!-- Selected alternative -->
+    <circle class="node-fill-alt node-selected" cx="240" cy="320" r="20"/>
 
-  <rect x="1230" y="340" width="248" height="118" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <text x="1252" y="376" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Key links</text>
-  <text x="1252" y="410" fill="#686562" font-family="Arial, sans-serif" font-size="16">- DOCUMENTS -> Docs</text>
-  <text x="1252" y="438" fill="#686562" font-family="Arial, sans-serif" font-size="16">- PROPOSES -> ChangeProposal</text>
+    <circle class="node-fill-alt" cx="700" cy="320" r="16"/>
+    <circle class="node-fill-alt" cx="480" cy="620" r="16"/>
 
-  <rect x="1230" y="482" width="248" height="162" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <text x="1252" y="518" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Persona summary</text>
-  <text x="1252" y="554" fill="#686562" font-family="Arial, sans-serif" font-size="16">Architect focused on</text>
-  <text x="1252" y="580" fill="#686562" font-family="Arial, sans-serif" font-size="16">stage ordering, offline</text>
-  <text x="1252" y="606" fill="#686562" font-family="Arial, sans-serif" font-size="16">safety, and explicit</text>
-  <text x="1252" y="632" fill="#686562" font-family="Arial, sans-serif" font-size="16">activation boundaries.</text>
+    <circle class="node-fill-trade" cx="170" cy="430" r="12"/>
+    <circle class="node-fill-trade" cx="820" cy="430" r="12"/>
 
-  <rect x="1230" y="668" width="248" height="54" rx="27" fill="#111111"/>
-  <text x="1291" y="701" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Chat with agent</text>
+    <circle class="node-fill-const" cx="330" cy="580" r="12"/>
+    <circle class="node-fill-const" cx="760" cy="540" r="12"/>
+
+    <circle class="node-fill-comp" cx="170" cy="270" r="11"/>
+    <circle class="node-fill-comp" cx="820" cy="270" r="11"/>
+
+    <circle class="node-fill-fail" cx="100" cy="500" r="10"/>
+    <circle class="node-fill-fail" cx="880" cy="500" r="10"/>
+
+    <circle class="node-fill-stake" cx="160" cy="630" r="10"/>
+    <circle class="node-fill-stake" cx="800" cy="630" r="10"/>
+  </g>
+
+  <!-- node labels -->
+  <text class="node-label" x="446" y="463">Adopt Postgres</text>
+  <text class="node-label" x="208" y="295">Stay on Mongo</text>
+  <text class="node-label" x="676" y="295">Aurora</text>
+
+  <!-- right sidebar — selected node detail -->
+  <rect class="sidebar" x="956" y="184" width="284" height="496" rx="8"/>
+  <text class="text-label" x="972" y="206">SELECTED NODE</text>
+  <text class="h-title"  x="972" y="234" style="font-size:18px;">Stay on Mongo</text>
+  <text class="text-muted" x="972" y="254">Alternative · ent_8f4a91…</text>
+
+  <text class="text-label" x="972" y="290">DESCRIPTION</text>
+  <text class="text-body" x="972" y="312">Keep the existing sharded MongoDB</text>
+  <text class="text-body" x="972" y="328">cluster and invest in stronger schema</text>
+  <text class="text-body" x="972" y="344">enforcement at the application layer.</text>
+
+  <text class="text-label" x="972" y="376">CONNECTED (2)</text>
+  <text class="text-body" x="972" y="398">→ Adopt PostgreSQL  (PREFERRED_OVER)</text>
+  <text class="text-body" x="972" y="416">→ operational complexity  (INVOLVES_TRADEOFF)</text>
+
+  <text class="text-label" x="972" y="448">FLAGGED FAILURE MODES</text>
+  <text class="text-body" x="972" y="470">• shard rebalancing during peak load</text>
+  <text class="text-body" x="972" y="488">• analytics joins require app-side merge</text>
+
+  <text class="text-label" x="972" y="520">REVIEWER COMMENTARY</text>
+  <text class="text-body" x="972" y="542">SRE: "Operational complexity is the</text>
+  <text class="text-body" x="972" y="560">binding constraint."</text>
+
+  <rect x="972" y="600" width="248" height="36" rx="6" fill="#ea580c"/>
+  <text x="1042" y="624" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="600">Chat with SRE</text>
 </svg>

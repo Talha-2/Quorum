@@ -26,8 +26,11 @@ There is also:
 
 ![Quorum pipeline stage flow chart](/docs-images/pipeline-flow.svg)
 
-*Flow chart: the backend enforces this order even if a caller skips around in
-the UI or tries to automate execution through the API.*
+*Pipeline: the backend enforces this order even if a caller skips around in
+the UI or automates through the API. For the engineering RFC domain, stages
+01, 03, and 07 use fixed Python constants (no LLM); stages 04 and 05 are
+skipped entirely; stage 06 convenes the full panel with a dedicated Skeptic
+cross-examination at the end of each round.*
 
 ## How to read the flow
 

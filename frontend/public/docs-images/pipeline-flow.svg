@@ -1,85 +1,126 @@
-<svg width="1400" height="860" viewBox="0 0 1400 860" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1400" height="860" rx="32" fill="#F7F1E7"/>
-  <rect x="44" y="44" width="1312" height="772" rx="28" fill="#FFFDF8" stroke="#D6CBB8" stroke-width="2"/>
-  <text x="76" y="108" fill="#1E1A16" font-family="Arial, sans-serif" font-size="34" font-weight="700">Quorum Production Pipeline</text>
-  <text x="76" y="144" fill="#6C6358" font-family="Arial, sans-serif" font-size="18">Strict sequential execution from project creation to report generation</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 440" role="img" aria-label="Quorum pipeline flow chart">
+  <title>Quorum pipeline — seven stages from decision to ADR</title>
 
   <defs>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
-      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#BDAE96" flood-opacity="0.2"/>
-    </filter>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M0 0L12 6L0 12V0Z" fill="#8A5A2B"/>
+    <style>
+      .canvas { fill: #ffffff; stroke: #e5e7eb; }
+      .card-bg { fill: #f8fafc; stroke: #e2e8f0; }
+      .card-stripe { fill: #ea580c; }
+      .stage-num { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; }
+      .stage-title { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; font-weight: 600; }
+      .stage-body { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11.5px; }
+      .h-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
+      .h-title { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 600; }
+      .h-sub   { fill: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; }
+      .caption { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 12px; }
+      .caption-bold { font-weight: 600; fill: #0f172a; }
+      .arrow { stroke: #cbd5e1; stroke-width: 1.5; fill: none; }
+      .legend-text { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; }
+    </style>
+    <marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#cbd5e1"/>
     </marker>
   </defs>
 
-  <g filter="url(#shadow)">
-    <rect x="80" y="190" width="250" height="120" rx="20" fill="#F8E5C6" stroke="#D98F2B" stroke-width="2"/>
-    <text x="108" y="230" fill="#8A4F13" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 00</text>
-    <text x="108" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Create Project</text>
-    <text x="108" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Brief, constraints, signals,</text>
-    <text x="108" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">optional uploaded documents</text>
+  <!-- canvas -->
+  <rect class="canvas" x="0.5" y="0.5" width="1279" height="439" rx="12"/>
 
-    <rect x="380" y="190" width="250" height="120" rx="20" fill="#FDE4D7" stroke="#D1672B" stroke-width="2"/>
-    <text x="408" y="230" fill="#9C4218" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 01</text>
-    <text x="408" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Ontology</text>
-    <text x="408" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Topic-specific entity and</text>
-    <text x="408" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">relation schema</text>
+  <!-- header -->
+  <text class="h-label" x="40" y="44">PIPELINE</text>
+  <text class="h-title" x="40" y="74">From decision to signed-off ADR in seven stages</text>
+  <text class="h-sub"   x="40" y="98">Each stage validates its prerequisites, persists its output, and exposes intermediate state to debug a review without guessing.</text>
 
-    <rect x="680" y="190" width="250" height="120" rx="20" fill="#FBE8F0" stroke="#C34C72" stroke-width="2"/>
-    <text x="708" y="230" fill="#8C3552" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 02</text>
-    <text x="708" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Graph Build</text>
-    <text x="708" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Typed nodes, edges, and</text>
-    <text x="708" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">graph statistics</text>
-
-    <rect x="980" y="190" width="250" height="120" rx="20" fill="#E4EEF9" stroke="#3B6EA8" stroke-width="2"/>
-    <text x="1008" y="230" fill="#254E7A" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 03</text>
-    <text x="1008" y="262" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Environment</text>
-    <text x="1008" y="290" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Speaker filter plus one</text>
-    <text x="1008" y="312" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">agent persona per entity</text>
-
-    <rect x="80" y="420" width="250" height="120" rx="20" fill="#E5F4EA" stroke="#2F8C56" stroke-width="2"/>
-    <text x="108" y="460" fill="#21633D" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 04</text>
-    <text x="108" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Simulation Config</text>
-    <text x="108" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Time model, activity</text>
-    <text x="108" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">profiles, platform weights</text>
-
-    <rect x="380" y="420" width="250" height="120" rx="20" fill="#F3E8FB" stroke="#7A49B9" stroke-width="2"/>
-    <text x="408" y="460" fill="#58348A" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 05</text>
-    <text x="408" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Activation</text>
-    <text x="408" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Narrative direction, hot</text>
-    <text x="408" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">topics, round-zero posts</text>
-
-    <rect x="680" y="420" width="250" height="120" rx="20" fill="#FBE7DF" stroke="#C76839" stroke-width="2"/>
-    <text x="708" y="460" fill="#8A4A25" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 06</text>
-    <text x="708" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Simulation</text>
-    <text x="708" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Round-based debate,</text>
-    <text x="708" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">transcript, consensus</text>
-
-    <rect x="980" y="420" width="250" height="120" rx="20" fill="#E7F4F2" stroke="#2B7A74" stroke-width="2"/>
-    <text x="1008" y="460" fill="#1F5C58" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 07</text>
-    <text x="1008" y="492" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Report</text>
-    <text x="1008" y="520" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Outline planning, section</text>
-    <text x="1008" y="542" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">writing, markdown export</text>
-
-    <rect x="575" y="630" width="250" height="120" rx="20" fill="#F3F0EA" stroke="#837560" stroke-width="2"/>
-    <text x="603" y="670" fill="#5D5243" font-family="Arial, sans-serif" font-size="20" font-weight="700">Stage 08</text>
-    <text x="603" y="702" fill="#1E1A16" font-family="Arial, sans-serif" font-size="24" font-weight="700">Agent Chat</text>
-    <text x="603" y="730" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">Post-run follow-up with one</text>
-    <text x="603" y="752" fill="#5F5549" font-family="Arial, sans-serif" font-size="16">specific agent persona</text>
+  <!-- 7 stage cards. Card box = 160x148, gap = 16. -->
+  <!-- 01 -->
+  <g transform="translate(40,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="159" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">01</text>
+    <text class="stage-title" x="14" y="46">Apply ontology</text>
+    <text class="stage-body" x="14" y="74">Topic-specific entity</text>
+    <text class="stage-body" x="14" y="90">and edge schema —</text>
+    <text class="stage-body" x="14" y="106">fixed for the</text>
+    <text class="stage-body" x="14" y="122">RFC domain.</text>
+  </g>
+  <!-- 02 -->
+  <g transform="translate(216,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="159" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">02</text>
+    <text class="stage-title" x="14" y="46">Build graph</text>
+    <text class="stage-body" x="14" y="74">Decisions, alternatives,</text>
+    <text class="stage-body" x="14" y="90">trade-offs, constraints,</text>
+    <text class="stage-body" x="14" y="106">stakeholders, failure</text>
+    <text class="stage-body" x="14" y="122">modes — typed.</text>
+  </g>
+  <!-- 03 -->
+  <g transform="translate(392,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="159" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">03</text>
+    <text class="stage-title" x="14" y="46">Convene panel</text>
+    <text class="stage-body" x="14" y="74">Seven-seat standing</text>
+    <text class="stage-body" x="14" y="90">reviewer roster —</text>
+    <text class="stage-body" x="14" y="106">principal eng, SRE,</text>
+    <text class="stage-body" x="14" y="122">security, cost, …</text>
+  </g>
+  <!-- 04 -->
+  <g transform="translate(568,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="159" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">04</text>
+    <text class="stage-title" x="14" y="46">Calibrate</text>
+    <text class="stage-body" x="14" y="74">Per-seat mandates so</text>
+    <text class="stage-body" x="14" y="90">security speaks on</text>
+    <text class="stage-body" x="14" y="106">threats, cost on TCO,</text>
+    <text class="stage-body" x="14" y="122">SRE on blast radius.</text>
+  </g>
+  <!-- 05 -->
+  <g transform="translate(744,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="159" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">05</text>
+    <text class="stage-title" x="14" y="46">Open review</text>
+    <text class="stage-body" x="14" y="74">Seed the panel with</text>
+    <text class="stage-body" x="14" y="90">the decision and the</text>
+    <text class="stage-body" x="14" y="106">trade-offs the brief</text>
+    <text class="stage-body" x="14" y="122">exposes.</text>
+  </g>
+  <!-- 06 -->
+  <g transform="translate(920,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="159" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">06</text>
+    <text class="stage-title" x="14" y="46">Run deliberation</text>
+    <text class="stage-body" x="14" y="74">Round-by-round debate.</text>
+    <text class="stage-body" x="14" y="90">Skeptic attacks the</text>
+    <text class="stage-body" x="14" y="106">leading argument at</text>
+    <text class="stage-body" x="14" y="122">the end of each round.</text>
+  </g>
+  <!-- 07 -->
+  <g transform="translate(1096,130)">
+    <rect class="card-bg" x="0.5" y="0.5" width="143" height="147" rx="8"/>
+    <rect class="card-stripe" x="0" y="0" width="3" height="148" rx="1.5"/>
+    <text class="stage-num"  x="14" y="22">07</text>
+    <text class="stage-title" x="14" y="46">Emit ADR</text>
+    <text class="stage-body" x="14" y="74">Eight-section Markdown</text>
+    <text class="stage-body" x="14" y="90">— decision, why-not,</text>
+    <text class="stage-body" x="14" y="106">dissents, consequences,</text>
+    <text class="stage-body" x="14" y="122">follow-ups.</text>
   </g>
 
-  <path d="M330 250H380" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M630 250H680" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M930 250H980" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M1105 310V365H205V420" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M330 480H380" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M630 480H680" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M930 480H980" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
-  <path d="M1105 540V590H700V630" stroke="#8A5A2B" stroke-width="4" marker-end="url(#arrow)"/>
+  <!-- arrows between stages (between cards, y center = 204) -->
+  <line class="arrow" x1="200" y1="204" x2="216" y2="204" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="376" y1="204" x2="392" y2="204" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="552" y1="204" x2="568" y2="204" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="728" y1="204" x2="744" y2="204" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="904" y1="204" x2="920" y2="204" marker-end="url(#arrowhead)"/>
+  <line class="arrow" x1="1080" y1="204" x2="1096" y2="204" marker-end="url(#arrowhead)"/>
 
-  <rect x="1050" y="640" width="210" height="92" rx="18" fill="#FFF7E8" stroke="#D6B671" stroke-width="2"/>
-  <text x="1076" y="678" fill="#7A5A1D" font-family="Arial, sans-serif" font-size="18" font-weight="700">Operational guards</text>
-  <text x="1076" y="706" fill="#6B604E" font-family="Arial, sans-serif" font-size="15">• per-project lock</text>
-  <text x="1076" y="728" fill="#6B604E" font-family="Arial, sans-serif" font-size="15">• persisted after mutation</text>
+  <!-- domain caption band -->
+  <rect x="40" y="312" width="1200" height="88" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <text class="h-label" x="56" y="334">ENGINEERING RFC DOMAIN</text>
+  <text class="caption" x="56" y="358"><tspan class="caption-bold">Fixed</tspan> ontology (01), reviewer roster (03), and ADR outline (07) ship as Python constants — no LLM call, deterministic, auditable.</text>
+  <text class="caption" x="56" y="376"><tspan class="caption-bold">Skipped</tspan> for fixed rosters: stages 04 (sim config) and 05 (activation) — the brief itself is the activation; the panel doesn’t need a “narrative direction”.</text>
+  <text class="caption" x="56" y="394"><tspan class="caption-bold">Full panel</tspan> speaks every round in 06, then the <tspan class="caption-bold">Skeptic</tspan> seat runs a dedicated cross-examination attacking the round’s leading argument.</text>
 </svg>

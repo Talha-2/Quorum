@@ -1,107 +1,171 @@
-<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1600" height="980" rx="28" fill="#F7F1E7"/>
-  <rect x="38" y="34" width="1524" height="912" rx="24" fill="#FFFDF9" stroke="#E2D7C6" stroke-width="2"/>
-  <rect x="38" y="34" width="1524" height="68" rx="24" fill="#FFFDF9"/>
-  <path d="M38 102H1562" stroke="#E5E4E2" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Quorum workbench screen mock">
+  <title>Quorum workbench — live RFC graph on the left, stage cards on the right, event log below</title>
 
-  <text x="88" y="76" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Quorum</text>
+  <defs>
+    <style>
+      .canvas { fill: #ffffff; stroke: #e5e7eb; }
+      .chrome { fill: #f8fafc; stroke: #e2e8f0; }
+      .pane   { fill: #f8fafc; stroke: #e2e8f0; }
+      .card   { fill: #ffffff; stroke: #e2e8f0; }
+      .card-done { fill: #fff7ed; stroke: #fed7aa; }
+      .card-active { fill: #ffffff; stroke: #ea580c; stroke-width: 1.5; }
+      .text-h     { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; }
+      .text-body  { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11.5px; }
+      .text-muted { fill: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10.5px; }
+      .text-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; }
+      .text-stage { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; }
+      .h-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
+      .h-title { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 600; }
+      .h-sub   { fill: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; }
+      .edge   { stroke: #cbd5e1; stroke-width: 1.25; fill: none; }
+      .node-fill-decision { fill: #ea580c; }
+      .node-fill-alt   { fill: #38bdf8; }
+      .node-fill-trade { fill: #a78bfa; }
+      .node-fill-const { fill: #facc15; }
+      .node-fill-comp  { fill: #34d399; }
+      .node-fill-rev   { fill: #f472b6; }
+      .node-stroke { stroke: #ffffff; stroke-width: 1.5; }
+      .log-strip { fill: #0f172a; }
+      .log-ts { fill: #94a3b8; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; }
+      .log-info { fill: #cbd5e1; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; }
+      .log-ok { fill: #4ade80; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10.5px; }
+    </style>
+  </defs>
 
-  <rect x="316" y="49" width="120" height="38" rx="11" fill="#FFFFFF" stroke="#D9D8D6"/>
-  <text x="347" y="73" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Workbench</text>
-  <rect x="444" y="49" width="92" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="475" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Graph</text>
-  <rect x="544" y="49" width="96" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="575" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Agents</text>
+  <rect class="canvas" x="0.5" y="0.5" width="1279" height="719" rx="12"/>
 
-  <rect x="698" y="48" width="140" height="40" rx="20" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <circle cx="728" cy="68" r="7" fill="#00C851"/>
-  <text x="745" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="15" font-weight="700">Report ready</text>
+  <text class="h-label" x="40" y="44">WORKSPACE — WORKBENCH</text>
+  <text class="h-title" x="40" y="74">Live RFC graph · sequential stage cards · event log</text>
+  <text class="h-sub"   x="40" y="98">Three views: Workbench (here), Graph (full-screen), Agents (panel gallery). Pipeline runs one stage at a time; each output is inspectable.</text>
 
-  <rect x="1364" y="46" width="142" height="42" rx="21" fill="#111111"/>
-  <text x="1408" y="72" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="700">New project</text>
+  <!-- chrome -->
+  <rect class="chrome" x="40" y="124" width="1200" height="48" rx="8"/>
+  <text class="text-h"     x="56" y="153">Quorum — Adopt PostgreSQL over MongoDB</text>
+  <text class="text-muted" x="980" y="153">Workbench · Graph · Agents · New project</text>
 
-  <rect x="58" y="126" width="880" height="744" rx="18" fill="#FFFFFF" stroke="#E5E4E2" stroke-width="2"/>
-  <rect x="954" y="126" width="588" height="744" rx="18" fill="#F8F7F4" stroke="#E5E4E2" stroke-width="2"/>
+  <!-- two-column body: graph left, stages right -->
+  <rect class="pane" x="40" y="184" width="780" height="440" rx="8"/>
+  <rect class="pane" x="836" y="184" width="404" height="440" rx="8"/>
 
-  <text x="84" y="164" fill="#6A6662" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">LIVE GRAPH</text>
+  <text class="text-label" x="56" y="206">RFC GRAPH (live)</text>
+  <text class="text-label" x="852" y="206">PIPELINE STAGES</text>
 
-  <line x1="168" y1="310" x2="356" y2="250" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="356" y1="250" x2="522" y2="336" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="522" y1="336" x2="702" y2="284" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="356" y1="250" x2="432" y2="470" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="432" y1="470" x2="624" y2="560" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="624" y1="560" x2="746" y2="454" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="522" y1="336" x2="624" y2="560" stroke="#D9C8B3" stroke-width="3"/>
-  <line x1="212" y1="566" x2="432" y2="470" stroke="#D9C8B3" stroke-width="3"/>
+  <!-- ============ GRAPH ============ -->
+  <!-- edges -->
+  <g class="edge">
+    <line x1="430" y1="380" x2="220" y2="280"/>
+    <line x1="430" y1="380" x2="290" y2="470"/>
+    <line x1="430" y1="380" x2="610" y2="280"/>
+    <line x1="430" y1="380" x2="640" y2="500"/>
+    <line x1="430" y1="380" x2="430" y2="540"/>
+    <line x1="220" y1="280" x2="160" y2="380"/>
+    <line x1="610" y1="280" x2="700" y2="380"/>
+    <line x1="290" y1="470" x2="430" y2="540"/>
+    <line x1="640" y1="500" x2="430" y2="540"/>
+    <line x1="220" y1="280" x2="430" y2="380"/>
+    <line x1="610" y1="280" x2="610" y2="380"/>
+    <line x1="160" y1="380" x2="290" y2="470"/>
+  </g>
 
-  <circle cx="168" cy="310" r="32" fill="#FFEEE6" stroke="#FF4500" stroke-width="3"/>
-  <circle cx="356" cy="250" r="38" fill="#E8F4EB" stroke="#2F8C56" stroke-width="3"/>
-  <circle cx="522" cy="336" r="35" fill="#E5EEF8" stroke="#4C7CB3" stroke-width="3"/>
-  <circle cx="702" cy="284" r="34" fill="#F3ECFB" stroke="#7D59B6" stroke-width="3"/>
-  <circle cx="432" cy="470" r="37" fill="#FFF4DE" stroke="#C8922E" stroke-width="3"/>
-  <circle cx="624" cy="560" r="41" fill="#FBE7DF" stroke="#C76839" stroke-width="3"/>
-  <circle cx="746" cy="454" r="31" fill="#E7F4F2" stroke="#2B7A74" stroke-width="3"/>
-  <circle cx="212" cy="566" r="29" fill="#F8E8EF" stroke="#BE5C7A" stroke-width="3"/>
+  <!-- nodes -->
+  <g class="node-stroke">
+    <!-- central decision -->
+    <circle class="node-fill-decision" cx="430" cy="380" r="22"/>
 
-  <text x="135" y="316" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Quorum</text>
-  <text x="318" y="255" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Platform</text>
-  <text x="487" y="341" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Architect</text>
-  <text x="670" y="289" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Docs</text>
-  <text x="397" y="475" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Activation</text>
-  <text x="586" y="565" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Simulation</text>
-  <text x="718" y="459" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Report</text>
-  <text x="186" y="571" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="700">Offline</text>
+    <!-- alternatives -->
+    <circle class="node-fill-alt" cx="220" cy="280" r="14"/>
+    <circle class="node-fill-alt" cx="610" cy="280" r="14"/>
+    <circle class="node-fill-alt" cx="430" cy="540" r="14"/>
 
-  <rect x="84" y="704" width="828" height="138" rx="16" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="108" y="738" fill="#6A6662" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">SELECTED NODE</text>
-  <text x="108" y="778" fill="#111111" font-family="Arial, sans-serif" font-size="28" font-weight="700">Senior Platform Architect</text>
-  <text x="108" y="814" fill="#686562" font-family="Arial, sans-serif" font-size="18">Graph and stage cards stay synchronized because every update re-renders from the same persisted project object.</text>
+    <!-- trade-offs -->
+    <circle class="node-fill-trade" cx="160" cy="380" r="10"/>
+    <circle class="node-fill-trade" cx="700" cy="380" r="10"/>
 
-  <text x="980" y="164" fill="#6A6662" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">WORKBENCH</text>
+    <!-- constraints -->
+    <circle class="node-fill-const" cx="290" cy="470" r="10"/>
+    <circle class="node-fill-const" cx="640" cy="500" r="10"/>
 
-  <rect x="980" y="182" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="1018" cy="223" r="12" fill="#DDF5E6"/>
-  <path d="M1011 223L1016 228L1026 216" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1044" y="214" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">01 Ontology generation</text>
-  <text x="1044" y="242" fill="#686562" font-family="Arial, sans-serif" font-size="16">10 entity types, 8 relation types</text>
+    <!-- components -->
+    <circle class="node-fill-comp" cx="610" cy="380" r="9"/>
 
-  <rect x="980" y="276" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="1018" cy="317" r="12" fill="#DDF5E6"/>
-  <path d="M1011 317L1016 322L1026 310" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1044" y="308" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">02 Graph build</text>
-  <text x="1044" y="336" fill="#686562" font-family="Arial, sans-serif" font-size="16">16 nodes, 21 typed edges</text>
+    <!-- reviewers (panel) on the perimeter -->
+    <circle class="node-fill-rev" cx="120" cy="240" r="8"/>
+    <circle class="node-fill-rev" cx="730" cy="230" r="8"/>
+    <circle class="node-fill-rev" cx="710" cy="560" r="8"/>
+    <circle class="node-fill-rev" cx="180" cy="540" r="8"/>
+  </g>
 
-  <rect x="980" y="370" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="1018" cy="411" r="12" fill="#DDF5E6"/>
-  <path d="M1011 411L1016 416L1026 404" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1044" y="402" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">03 Agent personas</text>
-  <text x="1044" y="430" fill="#686562" font-family="Arial, sans-serif" font-size="16">5 agents generated from speaker-capable entities</text>
+  <text class="text-muted" x="450" y="385">Adopt PostgreSQL</text>
+  <text class="text-muted" x="240" y="285">Stay on Mongo</text>
+  <text class="text-muted" x="630" y="285">Aurora</text>
 
-  <rect x="980" y="464" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="1018" cy="505" r="12" fill="#DDF5E6"/>
-  <path d="M1011 505L1016 510L1026 498" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1044" y="496" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">04 Simulation config</text>
-  <text x="1044" y="524" fill="#686562" font-family="Arial, sans-serif" font-size="16">Time model, activity profiles, platform weights</text>
+  <!-- graph legend -->
+  <g transform="translate(56,576)">
+    <circle class="node-fill-decision" cx="6" cy="0" r="4"/><text class="text-muted" x="16" y="4">Decision</text>
+    <circle class="node-fill-alt" cx="90" cy="0" r="4"/><text class="text-muted" x="100" y="4">Alternative</text>
+    <circle class="node-fill-trade" cx="190" cy="0" r="4"/><text class="text-muted" x="200" y="4">Tradeoff</text>
+    <circle class="node-fill-const" cx="280" cy="0" r="4"/><text class="text-muted" x="290" y="4">Constraint</text>
+    <circle class="node-fill-comp" cx="380" cy="0" r="4"/><text class="text-muted" x="390" y="4">Component</text>
+    <circle class="node-fill-rev" cx="490" cy="0" r="4"/><text class="text-muted" x="500" y="4">Reviewer</text>
+  </g>
 
-  <rect x="980" y="558" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="1018" cy="599" r="12" fill="#DDF5E6"/>
-  <path d="M1011 599L1016 604L1026 592" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1044" y="590" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">05 Activation</text>
-  <text x="1044" y="618" fill="#686562" font-family="Arial, sans-serif" font-size="16">6 hot topics, 4 starter posts, real agent assignments</text>
+  <!-- ============ STAGE CARDS ============ -->
+  <g transform="translate(852,222)">
+    <!-- 01 done -->
+    <rect class="card-done" x="0.5" y="0.5" width="372" height="48" rx="6"/>
+    <text class="text-stage" x="14" y="20">01</text>
+    <text class="text-h"     x="40" y="20">Apply ontology</text>
+    <text class="text-muted" x="40" y="38">10 entity types · 10 edge types</text>
+    <text class="text-muted" x="332" y="20">✓</text>
 
-  <rect x="980" y="652" width="536" height="82" rx="16" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="1018" cy="693" r="12" fill="#DDF5E6"/>
-  <path d="M1011 693L1016 698L1026 686" stroke="#2F8C56" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <text x="1044" y="684" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">06 Simulation</text>
-  <text x="1044" y="712" fill="#686562" font-family="Arial, sans-serif" font-size="16">Round-based transcript and consensus</text>
+    <!-- 02 done -->
+    <rect class="card-done" x="0.5" y="56.5" width="372" height="48" rx="6"/>
+    <text class="text-stage" x="14" y="76">02</text>
+    <text class="text-h"     x="40" y="76">Build RFC graph</text>
+    <text class="text-muted" x="40" y="94">14 nodes · 21 edges</text>
+    <text class="text-muted" x="332" y="76">✓</text>
 
-  <rect x="980" y="746" width="536" height="96" rx="16" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
-  <text x="1008" y="778" fill="#8D4D24" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">07 REPORT</text>
-  <text x="1008" y="814" fill="#111111" font-family="Arial, sans-serif" font-size="22" font-weight="700">Deployment freeze maintained pending break-glass validation</text>
+    <!-- 03 done -->
+    <rect class="card-done" x="0.5" y="112.5" width="372" height="48" rx="6"/>
+    <text class="text-stage" x="14" y="132">03</text>
+    <text class="text-h"     x="40" y="132">Convene panel</text>
+    <text class="text-muted" x="40" y="150">7-seat reviewer roster</text>
+    <text class="text-muted" x="332" y="132">✓</text>
 
-  <rect x="38" y="890" width="1524" height="56" rx="0" fill="#111111"/>
-  <circle cx="84" cy="918" r="7" fill="#00C851"/>
-  <text x="102" y="923" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16">Report ready: 3 sections</text>
-  <circle cx="368" cy="918" r="7" fill="#FF4500"/>
-  <text x="386" y="923" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16">Project: proj_b9f47ff22270</text>
+    <!-- 04 active -->
+    <rect class="card-active" x="0.5" y="168.5" width="372" height="64" rx="6"/>
+    <text class="text-stage" x="14" y="190">04</text>
+    <text class="text-h"     x="40" y="190">Calibrate</text>
+    <text class="text-muted" x="40" y="208">Per-seat mandates</text>
+    <text class="text-body" x="40" y="224">Running…</text>
+    <rect x="332" y="184" width="28" height="14" rx="3" fill="#ea580c"/>
+    <text class="text-muted" x="338" y="195" style="fill:#ffffff;">▶</text>
+
+    <!-- 05 pending -->
+    <rect class="card" x="0.5" y="240.5" width="372" height="48" rx="6"/>
+    <text class="text-stage" x="14" y="260">05</text>
+    <text class="text-h"     x="40" y="260">Open review</text>
+    <text class="text-muted" x="40" y="278">Seed the panel with the decision</text>
+
+    <!-- 06 pending -->
+    <rect class="card" x="0.5" y="296.5" width="372" height="48" rx="6"/>
+    <text class="text-stage" x="14" y="316">06</text>
+    <text class="text-h"     x="40" y="316">Run deliberation</text>
+    <text class="text-muted" x="40" y="334">Rounds + Skeptic cross-exam</text>
+
+    <!-- 07 pending -->
+    <rect class="card" x="0.5" y="352.5" width="372" height="48" rx="6"/>
+    <text class="text-stage" x="14" y="372">07</text>
+    <text class="text-h"     x="40" y="372">Emit ADR</text>
+    <text class="text-muted" x="40" y="390">Eight-section Markdown</text>
+  </g>
+
+  <!-- event log strip -->
+  <rect class="log-strip" x="40" y="640" width="1200" height="60" rx="8"/>
+  <text class="log-ts"   x="56" y="664">17:42:11</text>
+  <text class="log-ok"   x="120" y="664">ontology</text>
+  <text class="log-info" x="200" y="664">Applied fixed engineering_rfc ontology — 10 entity types, 10 edge types</text>
+  <text class="log-ts"   x="56" y="684">17:42:14</text>
+  <text class="log-ok"   x="120" y="684">env</text>
+  <text class="log-info" x="200" y="684">Convened the 7-seat Engineering RFC / ADR panel — Principal Eng, SRE, Security, Cost, Product, Tech Lead, Skeptic</text>
 </svg>

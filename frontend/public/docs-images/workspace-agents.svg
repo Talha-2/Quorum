@@ -1,88 +1,195 @@
-<svg width="1600" height="980" viewBox="0 0 1600 980" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1600" height="980" rx="28" fill="#F7F1E7"/>
-  <rect x="38" y="34" width="1524" height="912" rx="24" fill="#FFFDF9" stroke="#E2D7C6" stroke-width="2"/>
-  <rect x="38" y="34" width="1524" height="68" rx="24" fill="#FFFDF9"/>
-  <path d="M38 102H1562" stroke="#E5E4E2" stroke-width="2"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" role="img" aria-label="Quorum agents screen mock">
+  <title>Quorum agents view — the 7-seat reviewer panel for the engineering RFC domain</title>
 
-  <text x="88" y="76" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="700">Quorum</text>
+  <defs>
+    <style>
+      .canvas { fill: #ffffff; stroke: #e5e7eb; }
+      .chrome { fill: #f8fafc; stroke: #e2e8f0; }
+      .pane   { fill: #f8fafc; stroke: #e2e8f0; }
+      .card   { fill: #ffffff; stroke: #e2e8f0; }
+      .chip   { fill: #ffffff; stroke: #cbd5e1; }
+      .chip-active { fill: #fff7ed; stroke: #ea580c; }
+      .stance-neutral { fill: #f1f5f9; stroke: #cbd5e1; }
+      .stance-oppose  { fill: #fee2e2; stroke: #fca5a5; }
+      .text-h     { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; font-weight: 600; }
+      .text-h2    { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; font-weight: 600; }
+      .text-body  { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11.5px; }
+      .text-muted { fill: #94a3b8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 10.5px; }
+      .text-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.12em; }
+      .text-chip { fill: #475569; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 500; }
+      .text-chip-active { fill: #ea580c; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 11px; font-weight: 600; }
+      .text-stance-neutral { fill: #475569; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em; }
+      .text-stance-oppose  { fill: #b91c1c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9.5px; font-weight: 600; letter-spacing: 0.06em; }
+      .h-label { fill: #ea580c; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 600; letter-spacing: 0.12em; }
+      .h-title { fill: #0f172a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 22px; font-weight: 600; }
+      .h-sub   { fill: #64748b; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 13px; }
+    </style>
+  </defs>
 
-  <rect x="316" y="49" width="120" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="347" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Workbench</text>
-  <rect x="444" y="49" width="92" height="38" rx="11" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="475" y="73" fill="#6A6662" font-family="Arial, sans-serif" font-size="16" font-weight="700">Graph</text>
-  <rect x="544" y="49" width="96" height="38" rx="11" fill="#FFFFFF" stroke="#D9D8D6"/>
-  <text x="575" y="73" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="700">Agents</text>
+  <rect class="canvas" x="0.5" y="0.5" width="1279" height="719" rx="12"/>
 
-  <rect x="66" y="126" width="1120" height="744" rx="18" fill="#F8F7F4" stroke="#E5E4E2" stroke-width="2"/>
-  <rect x="1204" y="126" width="316" height="744" rx="18" fill="#FFFFFF" stroke="#E5E4E2" stroke-width="2"/>
+  <text class="h-label" x="40" y="44">WORKSPACE — AGENTS</text>
+  <text class="h-title" x="40" y="74">The 7-seat reviewer panel</text>
+  <text class="h-sub"   x="40" y="98">Fixed for the engineering RFC domain. Each seat carries a non-overlapping mandate so the deliberation surfaces trade-offs an organic review usually misses.</text>
 
-  <text x="92" y="166" fill="#6A6662" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.2">AGENT GALLERY</text>
-  <text x="92" y="208" fill="#111111" font-family="Arial, sans-serif" font-size="34" font-weight="700">Five generated agents</text>
+  <!-- chrome -->
+  <rect class="chrome" x="40" y="124" width="1200" height="48" rx="8"/>
+  <text class="text-h"     x="56" y="153">Quorum — Adopt PostgreSQL over MongoDB</text>
+  <text class="text-muted" x="980" y="153">Workbench · Graph · Agents · New project</text>
 
-  <rect x="92" y="246" width="240" height="236" rx="18" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="144" cy="302" r="22" fill="#FFEEE6"/>
-  <text x="180" y="308" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">Quorum</text>
-  <text x="180" y="336" fill="#8D4D24" font-family="Arial, sans-serif" font-size="14" font-weight="700">@quorum_495</text>
-  <text x="118" y="384" fill="#686562" font-family="Arial, sans-serif" font-size="16">Organization that encodes</text>
-  <text x="118" y="410" fill="#686562" font-family="Arial, sans-serif" font-size="16">the institutional stance.</text>
-  <rect x="118" y="438" width="98" height="28" rx="14" fill="#FFF4DE"/>
-  <text x="148" y="456" fill="#8B651A" font-family="Arial, sans-serif" font-size="13" font-weight="700">neutral</text>
+  <!-- filter bar -->
+  <rect class="pane" x="40" y="184" width="1200" height="40" rx="8"/>
+  <text class="text-label" x="56" y="208">STANCE</text>
+  <g transform="translate(112,194)">
+    <rect class="chip-active" x="0.5" y="0.5" width="60" height="22" rx="11"/>
+    <text class="text-chip-active" x="14" y="16">All (7)</text>
 
-  <rect x="356" y="246" width="240" height="236" rx="18" fill="#FFFFFF" stroke="#FF4500" stroke-width="2"/>
-  <circle cx="408" cy="302" r="22" fill="#E8F4EB"/>
-  <text x="444" y="308" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">Platform Team</text>
-  <text x="444" y="336" fill="#2F8C56" font-family="Arial, sans-serif" font-size="14" font-weight="700">@platformengineering_514</text>
-  <text x="382" y="384" fill="#686562" font-family="Arial, sans-serif" font-size="16">Owns the production path,</text>
-  <text x="382" y="410" fill="#686562" font-family="Arial, sans-serif" font-size="16">activation gates, and tests.</text>
-  <rect x="382" y="438" width="98" height="28" rx="14" fill="#FFF4DE"/>
-  <text x="412" y="456" fill="#8B651A" font-family="Arial, sans-serif" font-size="13" font-weight="700">neutral</text>
+    <rect class="chip" x="70.5" y="0.5" width="78" height="22" rx="11"/>
+    <text class="text-chip" x="84" y="16">Support (0)</text>
 
-  <rect x="620" y="246" width="240" height="236" rx="18" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="672" cy="302" r="22" fill="#E5EEF8"/>
-  <text x="708" y="308" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">Senior Architect</text>
-  <text x="708" y="336" fill="#355F8E" font-family="Arial, sans-serif" font-size="14" font-weight="700">@seniorplatformarch_974</text>
-  <text x="646" y="384" fill="#686562" font-family="Arial, sans-serif" font-size="16">Pushes for explicit stage</text>
-  <text x="646" y="410" fill="#686562" font-family="Arial, sans-serif" font-size="16">ordering and offline safety.</text>
-  <rect x="646" y="438" width="98" height="28" rx="14" fill="#FFF4DE"/>
-  <text x="676" y="456" fill="#8B651A" font-family="Arial, sans-serif" font-size="13" font-weight="700">neutral</text>
+    <rect class="chip" x="158.5" y="0.5" width="76" height="22" rx="11"/>
+    <text class="text-chip" x="172" y="16">Oppose (1)</text>
 
-  <rect x="884" y="246" width="240" height="236" rx="18" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="936" cy="302" r="22" fill="#F8E8EF"/>
-  <text x="972" y="308" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">Engineering Mgr</text>
-  <text x="972" y="336" fill="#BE5C7A" font-family="Arial, sans-serif" font-size="14" font-weight="700">@engineeringmanager_525</text>
-  <text x="910" y="384" fill="#686562" font-family="Arial, sans-serif" font-size="16">Tracks delivery risk,</text>
-  <text x="910" y="410" fill="#686562" font-family="Arial, sans-serif" font-size="16">operability, and sign-off.</text>
-  <rect x="910" y="438" width="98" height="28" rx="14" fill="#FFF4DE"/>
-  <text x="940" y="456" fill="#8B651A" font-family="Arial, sans-serif" font-size="13" font-weight="700">neutral</text>
+    <rect class="chip" x="244.5" y="0.5" width="78" height="22" rx="11"/>
+    <text class="text-chip" x="258" y="16">Neutral (6)</text>
+  </g>
 
-  <rect x="92" y="520" width="240" height="236" rx="18" fill="#FFFFFF" stroke="#E5E4E2"/>
-  <circle cx="144" cy="576" r="22" fill="#E7F4F2"/>
-  <text x="180" y="582" fill="#111111" font-family="Arial, sans-serif" font-size="20" font-weight="700">Release Operator</text>
-  <text x="180" y="610" fill="#2B7A74" font-family="Arial, sans-serif" font-size="14" font-weight="700">@devopsreleaseoperator_663</text>
-  <text x="118" y="658" fill="#686562" font-family="Arial, sans-serif" font-size="16">Protects emergency paths,</text>
-  <text x="118" y="684" fill="#686562" font-family="Arial, sans-serif" font-size="16">rollback speed, and runbooks.</text>
-  <rect x="118" y="712" width="98" height="28" rx="14" fill="#FFF4DE"/>
-  <text x="148" y="730" fill="#8B651A" font-family="Arial, sans-serif" font-size="13" font-weight="700">neutral</text>
+  <!-- grid: 4 cards × 2 rows (last row has 3) -->
+  <!-- Card layout: 4 columns × 2 rows, each 280×214, gap 16. Margin 40. -->
 
-  <rect x="1204" y="126" width="316" height="92" rx="18" fill="#FFF8F6" stroke="#FF4500" stroke-width="2"/>
-  <text x="1234" y="162" fill="#8D4D24" font-family="Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="1.2">DETAIL PANEL</text>
-  <text x="1234" y="196" fill="#111111" font-family="Arial, sans-serif" font-size="26" font-weight="700">Platform Engineering Team</text>
+  <!-- Row 1: Principal Engineering, Reliability, Security, Cost -->
+  <g transform="translate(40,240)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="22" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">PE</text>
+    <text class="text-h2"   x="58" y="28">Principal Engineering</text>
+    <text class="text-muted" x="58" y="44">@principalengineer_412</text>
+    <rect class="stance-neutral" x="220" y="14" width="58" height="20" rx="10"/>
+    <text class="text-stance-neutral" x="232" y="27">NEUTRAL</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">Architectural soundness,</text>
+    <text class="text-body" x="14" y="114">system boundaries,</text>
+    <text class="text-body" x="14" y="130">abstraction discipline.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">system design · architectural</text>
+    <text class="text-body" x="14" y="192">coherence · long-term cost</text>
+  </g>
 
-  <rect x="1230" y="242" width="264" height="158" rx="16" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="1252" y="278" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Summary</text>
-  <text x="1252" y="312" fill="#686562" font-family="Arial, sans-serif" font-size="16">Owns deployment safety,</text>
-  <text x="1252" y="338" fill="#686562" font-family="Arial, sans-serif" font-size="16">ghost deployment fixes,</text>
-  <text x="1252" y="364" fill="#686562" font-family="Arial, sans-serif" font-size="16">and validation of the</text>
-  <text x="1252" y="390" fill="#686562" font-family="Arial, sans-serif" font-size="16">break-glass protocol.</text>
+  <g transform="translate(343,240)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="20" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">RE</text>
+    <text class="text-h2"   x="58" y="28">Reliability (SRE)</text>
+    <text class="text-muted" x="58" y="44">@reliabilityengineer_281</text>
+    <rect class="stance-neutral" x="220" y="14" width="58" height="20" rx="10"/>
+    <text class="text-stance-neutral" x="232" y="27">NEUTRAL</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">Operational risk, blast</text>
+    <text class="text-body" x="14" y="114">radius, on-call burden,</text>
+    <text class="text-body" x="14" y="130">SLOs.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">operational risk · observability</text>
+    <text class="text-body" x="14" y="192">on-call burden · SLOs</text>
+  </g>
 
-  <rect x="1230" y="426" width="264" height="168" rx="16" fill="#F8F7F4" stroke="#E5E4E2"/>
-  <text x="1252" y="462" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="700">Traits</text>
-  <text x="1252" y="496" fill="#686562" font-family="Arial, sans-serif" font-size="16">Risk tolerance: medium</text>
-  <text x="1252" y="522" fill="#686562" font-family="Arial, sans-serif" font-size="16">Caution: high</text>
-  <text x="1252" y="548" fill="#686562" font-family="Arial, sans-serif" font-size="16">Influence: strong</text>
-  <text x="1252" y="574" fill="#686562" font-family="Arial, sans-serif" font-size="16">Topics: activation, offline mode,</text>
-  <text x="1252" y="600" fill="#686562" font-family="Arial, sans-serif" font-size="16">chaos engineering</text>
+  <g transform="translate(646,240)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="22" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">SE</text>
+    <text class="text-h2"   x="58" y="28">Security</text>
+    <text class="text-muted" x="58" y="44">@securityengineer_137</text>
+    <rect class="stance-neutral" x="220" y="14" width="58" height="20" rx="10"/>
+    <text class="text-stance-neutral" x="232" y="27">NEUTRAL</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">Threat model, authorization</text>
+    <text class="text-body" x="14" y="114">surface, supply-chain and</text>
+    <text class="text-body" x="14" y="130">data risk.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">threat modeling · authn/authz</text>
+    <text class="text-body" x="14" y="192">supply chain · data handling</text>
+  </g>
 
-  <rect x="1230" y="622" width="264" height="54" rx="27" fill="#111111"/>
-  <text x="1291" y="655" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="18" font-weight="700">Chat with agent</text>
+  <g transform="translate(949,240)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="24" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">C</text>
+    <text class="text-h2"   x="58" y="28">Cost &amp; Finance</text>
+    <text class="text-muted" x="58" y="44">@costfinance_902</text>
+    <rect class="stance-neutral" x="220" y="14" width="58" height="20" rx="10"/>
+    <text class="text-stance-neutral" x="232" y="27">NEUTRAL</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">Total cost of ownership,</text>
+    <text class="text-body" x="14" y="114">vendor lock-in,</text>
+    <text class="text-body" x="14" y="130">cost-at-scale.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">TCO · vendor lock-in</text>
+    <text class="text-body" x="14" y="192">cost modeling</text>
+  </g>
+
+  <!-- Row 2: Product, Tech Lead, Skeptic -->
+  <g transform="translate(40,476)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="22" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">PM</text>
+    <text class="text-h2"   x="58" y="28">Product</text>
+    <text class="text-muted" x="58" y="44">@productmanager_654</text>
+    <rect class="stance-neutral" x="220" y="14" width="58" height="20" rx="10"/>
+    <text class="text-stance-neutral" x="232" y="27">NEUTRAL</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">User and business intent;</text>
+    <text class="text-body" x="14" y="114">what success looks like</text>
+    <text class="text-body" x="14" y="130">in production.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">product intent · user outcomes</text>
+    <text class="text-body" x="14" y="192">measurable success</text>
+  </g>
+
+  <g transform="translate(343,476)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="22" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">TL</text>
+    <text class="text-h2"   x="58" y="28">Tech Lead</text>
+    <text class="text-muted" x="58" y="44">@techlead_318</text>
+    <rect class="stance-neutral" x="220" y="14" width="58" height="20" rx="10"/>
+    <text class="text-stance-neutral" x="232" y="27">NEUTRAL</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">Team velocity, hiring &amp;</text>
+    <text class="text-body" x="14" y="114">learning curve, day-to-day</text>
+    <text class="text-body" x="14" y="130">developer experience.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">team velocity · DX</text>
+    <text class="text-body" x="14" y="192">learning curve</text>
+  </g>
+
+  <g transform="translate(646,476)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8"/>
+    <circle cx="30" cy="30" r="14" fill="#fff7ed" stroke="#fed7aa"/>
+    <text x="24" y="35" fill="#ea580c" font-family="-apple-system" font-size="14" font-weight="600">S</text>
+    <text class="text-h2"   x="58" y="28">Skeptic</text>
+    <text class="text-muted" x="58" y="44">@skeptic_770</text>
+    <rect class="stance-oppose" x="222" y="14" width="56" height="20" rx="10"/>
+    <text class="text-stance-oppose" x="234" y="27">OPPOSE</text>
+    <text class="text-label" x="14" y="78">MANDATE</text>
+    <text class="text-body" x="14" y="98">Attack the leading</text>
+    <text class="text-body" x="14" y="114">alternative. Force an</text>
+    <text class="text-body" x="14" y="130">explicit defense.</text>
+    <text class="text-label" x="14" y="156">EXPERTISE</text>
+    <text class="text-body" x="14" y="176">debiasing · anchoring</text>
+    <text class="text-body" x="14" y="192">premature consensus</text>
+  </g>
+
+  <!-- caption tile -->
+  <g transform="translate(949,476)">
+    <rect class="card" x="0.5" y="0.5" width="287" height="220" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+    <text class="text-label" x="20" y="32">PANEL</text>
+    <text class="text-h2"   x="20" y="56">Same seven seats, every RFC.</text>
+    <text class="text-body" x="20" y="86">The roster lives in one Python</text>
+    <text class="text-body" x="20" y="102">file (engineering_rfc.py). Fork</text>
+    <text class="text-body" x="20" y="118">it to add seats for your team's</text>
+    <text class="text-body" x="20" y="134">conventions — DBA, ML, design,</text>
+    <text class="text-body" x="20" y="150">data — without touching the engine.</text>
+    <text class="text-label" x="20" y="180">SKEPTIC</text>
+    <text class="text-body" x="20" y="200">Runs a dedicated cross-examination</text>
+    <text class="text-body" x="20" y="216">turn at the end of each round.</text>
+  </g>
 </svg>

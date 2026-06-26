@@ -16,8 +16,9 @@ and all LLM-driven artifact generation.
 
 ![Quorum system architecture diagram](/docs-images/system-architecture.svg)
 
-*Architecture diagram: a single workspace UI drives one project router, which
-coordinates stage services, persistence, and the provider abstraction.*
+*Architecture: a Next.js workspace and Fumadocs site call a single FastAPI
+backend that owns the pipeline router, domain registry, async job worker, and
+LLM abstraction; PostgreSQL holds projects and the durable job queue.*
 
 ## Source of truth
 
